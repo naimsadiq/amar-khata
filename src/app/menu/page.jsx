@@ -2,7 +2,7 @@
 import React from "react";
 import Image from "next/image";
 import AppLayout from "@/components/layout/AppLayout";
-import { useAuth } from "@/context/AuthContext"; // AuthContext ইমপোর্ট করা হলো
+import { useAuth } from "@/context/AuthContext";
 import {
   Edit,
   Building2,
@@ -14,7 +14,6 @@ import {
 } from "lucide-react";
 
 export default function MenuPage() {
-  // Context থেকে ইউজার ডাটা এবং লগআউট ফাংশন আনা হলো
   const { user, logout } = useAuth();
 
   return (
@@ -41,7 +40,6 @@ export default function MenuPage() {
 
               {/* Name & Badge (Dynamic Data) */}
               <div className="flex flex-col items-start gap-1">
-                {/* ইউজারের নাম ডাইনামিক করা হলো */}
                 <h2 className="text-xl font-semibold">
                   {user?.name || "Guest User"}
                 </h2>
@@ -68,7 +66,7 @@ export default function MenuPage() {
                 <p className="text-[12px] text-gray-400 font-medium">
                   Business
                 </p>
-                {/* বিজনেসের নাম ডাইনামিক করা হলো */}
+
                 <p className="text-[15px] text-gray-800 font-medium">
                   {user?.businessName || "No Business Added"}
                 </p>
@@ -82,7 +80,7 @@ export default function MenuPage() {
               </div>
               <div>
                 <p className="text-[12px] text-gray-400 font-medium">Phone</p>
-                {/* ফোন নম্বর ডাইনামিক করা হলো */}
+
                 <p className="text-[15px] text-gray-800 font-medium">
                   {user?.phone || "No Phone Number"}
                 </p>
@@ -110,7 +108,7 @@ export default function MenuPage() {
 
         {/* Log Out Button (Dynamic Action) */}
         <button
-          onClick={logout} // লগআউট ফাংশন এখানে বসানো হয়েছে
+          onClick={logout}
           className="w-full border border-gray-100 rounded-xl p-4 flex items-center justify-start gap-3 bg-white shadow-sm hover:bg-red-50 transition-colors"
         >
           <LogOut

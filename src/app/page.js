@@ -3,7 +3,6 @@ import React, { useState } from "react";
 import AppLayout from "@/components/layout/AppLayout";
 import Header from "@/components/layout/Header";
 
-// সবগুলো ট্যাব ইমপোর্ট করা হলো
 import CustomersTab from "@/components/home/CustomersTab";
 import SuppliersTab from "@/components/home/SuppliersTab";
 import AccountTab from "@/components/home/AccountTab";
@@ -35,7 +34,7 @@ export default function HomePage() {
         ))}
       </div>
 
-      {/* Tab Contents (ক্লিক করলে সেই পেজ লোড হবে) */}
+      {/* Tab Contents */}
       <div className="flex-1 mt-2">
         {activeTab === "Customers" && <CustomersTab />}
         {activeTab === "Suppliers" && <SuppliersTab />}

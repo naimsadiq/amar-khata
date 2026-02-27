@@ -20,7 +20,7 @@ export default function AccountTab() {
             <div className="text-[#10b981] text-2xl font-bold mb-1">
               {isHidden ? "..." : "0.00৳"}
             </div>
-            {/* এখানে Total In এবং Total Out */}
+            
             <div className="text-gray-400 text-[12px]">Total In</div>
           </div>
           <div className="flex-1 py-4 text-center">

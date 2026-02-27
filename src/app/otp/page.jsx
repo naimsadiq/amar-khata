@@ -1,19 +1,19 @@
 "use client";
 import React, { useState } from "react";
 import { useAuth } from "@/context/AuthContext";
-import { KeyRound, AlertCircle } from "lucide-react"; // AlertCircle আইকন ইমপোর্ট করা হলো
+import { KeyRound, AlertCircle } from "lucide-react";
 
 export default function OtpPage() {
   const [otp, setOtp] = useState("");
-  const [error, setError] = useState(""); // এরর মেসেজ রাখার জন্য স্টেট
+  const [error, setError] = useState("");
   const { verifyOtp, tempPhone } = useAuth();
 
   const handleVerify = () => {
     if (otp.length === 6) {
-      setError(""); // সব ঠিক থাকলে এরর ক্লিয়ার
-      verifyOtp(otp); // Context এর ফাংশন কল হবে
+      setError("");
+      verifyOtp(otp);
     } else {
-      setError("Please enter a valid 6-digit code"); // এরর সেট করা
+      setError("Please enter a valid 6-digit code");
     }
   };
 
@@ -31,12 +31,12 @@ export default function OtpPage() {
             OTP Code
           </label>
 
-          {/* Input Container: এরর থাকলে বর্ডার লাল হবে */}
+          {/* Input Container */}
           <div
             className={`relative flex items-center w-full border rounded-xl px-4 py-[14px] bg-transparent transition-colors duration-200 ${
               error
-                ? "border-red-500 ring-1 ring-red-500/20" // এরর স্টাইল
-                : "border-[#10b981]" // নরমাল স্টাইল
+                ? "border-red-500 ring-1 ring-red-500/20"
+                : "border-[#10b981]"
             }`}
           >
             <KeyRound
@@ -50,7 +50,7 @@ export default function OtpPage() {
               value={otp}
               onChange={(e) => {
                 setOtp(e.target.value);
-                if (error) setError(""); // ইউজার টাইপ করা শুরু করলে এরর মুছে যাবে
+                if (error) setError("");
               }}
               placeholder="123456"
               className="w-full bg-transparent outline-none text-gray-700 placeholder-gray-300 text-[16px] tracking-widest"
@@ -58,7 +58,7 @@ export default function OtpPage() {
             />
           </div>
 
-          {/* Error Message Display (ইনপুট এর নিচে) */}
+          {/* Error Message Display */}
           {error && (
             <div className="absolute -bottom-6 left-1 flex items-center gap-1 animate-in fade-in slide-in-from-top-1 duration-300">
               <AlertCircle className="w-3 h-3 text-red-500" />

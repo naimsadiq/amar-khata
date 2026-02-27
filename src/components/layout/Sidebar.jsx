@@ -3,19 +3,17 @@ import React from "react";
 import Link from "next/link";
 import { X, LogOut, User, Settings } from "lucide-react";
 import { useLayout } from "@/context/LayoutContext";
-import { useAuth } from "@/context/AuthContext"; // AuthContext ইমপোর্ট করা হলো
+import { useAuth } from "@/context/AuthContext";
 
 export default function Sidebar() {
   const { isSidebarOpen, setIsSidebarOpen } = useLayout();
-  const { user, logout } = useAuth(); // ইউজার ডাটা এবং লগআউট ফাংশন আনা হলো
+  const { user, logout } = useAuth();
 
-  // লগআউট হ্যান্ডলার: লগআউট করবে এবং সাইডবার বন্ধ করবে
   const handleLogout = () => {
-    setIsSidebarOpen(false); // সাইডবার বন্ধ করা
-    logout(); // লগআউট ফাংশন কল করা
+    setIsSidebarOpen(false);
+    logout();
   };
 
-  // লিংক ক্লিক হ্যান্ডলার: অন্য পেজে গেলে সাইডবার বন্ধ হবে
   const handleLinkClick = () => {
     setIsSidebarOpen(false);
   };
@@ -39,11 +37,10 @@ export default function Sidebar() {
         {/* Header Section (Dynamic) */}
         <div className="bg-[#10b981] p-5 h-36 text-white flex justify-between items-start">
           <div className="flex flex-col justify-end h-full pb-2">
-            {/* ইউজারের নাম অথবা বিজনেসের নাম */}
             <h2 className="text-xl font-bold truncate max-w-[200px]">
               {user?.businessName || user?.name || "Menu"}
             </h2>
-            {/* ইউজারের ফোন নম্বর */}
+
             <p className="text-sm opacity-90 mt-1">
               {user?.phone || "No Phone Number"}
             </p>
@@ -61,7 +58,7 @@ export default function Sidebar() {
         <div className="p-4 flex flex-col gap-2 text-gray-700">
           {/* Profile Link */}
           <Link
-            href="/menu" // মেনু পেজে নিয়ে যাবে
+            href="/menu"
             onClick={handleLinkClick}
             className="flex items-center gap-3 px-3 py-3 rounded-lg hover:bg-gray-50 hover:text-[#10b981] font-medium transition-colors"
           >
@@ -71,7 +68,7 @@ export default function Sidebar() {
 
           {/* Settings Link */}
           <Link
-            href="/menu" // সেটিংস সাধারণত মেনু পেজে থাকে তাই আপাতত মেনুতে দেওয়া হলো
+            href="/menu"
             onClick={handleLinkClick}
             className="flex items-center gap-3 px-3 py-3 rounded-lg hover:bg-gray-50 hover:text-[#10b981] font-medium transition-colors"
           >

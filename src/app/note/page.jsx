@@ -43,7 +43,7 @@ export default function NotePage() {
         </div>
       </div>
 
-      {/* Floating Action Button (Square shape with rounded corners like image) */}
+      {/* Floating Action Button */}
       <button className="absolute bottom-20 right-5 bg-[#10b981] text-white p-4 rounded-2xl shadow-lg hover:bg-[#0e9f6e] hover:-translate-y-1 transition-all active:scale-95 z-20">
         <Plus className="w-7 h-7" />
       </button>

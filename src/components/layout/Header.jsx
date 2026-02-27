@@ -2,11 +2,11 @@
 import React from "react";
 import { Menu, ChevronDown } from "lucide-react";
 import { useLayout } from "@/context/LayoutContext";
-import { useAuth } from "@/context/AuthContext"; // AuthContext ইমপোর্ট করা হলো
+import { useAuth } from "@/context/AuthContext";
 
 export default function Header() {
   const { setIsSidebarOpen } = useLayout();
-  const { user } = useAuth(); // ইউজার ডাটা আনা হলো
+  const { user } = useAuth();
 
   return (
     <header className="bg-[#10b981] px-4 py-3 flex items-center gap-4 shadow-sm z-10 sticky top-0">
@@ -19,7 +19,6 @@ export default function Header() {
 
       {/* Business Name Dropdown */}
       <button className="bg-white/20 hover:bg-white/30 text-white flex items-center gap-2 px-3 py-1.5 rounded-lg transition-colors max-w-[200px]">
-        {/* ডাইনামিক বিজনেস নেম অথবা ইউজার নেম */}
         <span className="font-medium text-[15px] truncate">
           {user?.businessName || user?.name || "My Business"}
         </span>

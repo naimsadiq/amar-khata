@@ -3,7 +3,6 @@ import React, { useState } from "react";
 import { EyeOff, Eye, Search, UserPlus } from "lucide-react";
 
 export default function CustomersTab() {
-  // ব্যালেন্স হাইড/শো করার জন্য State
   const [isHidden, setIsHidden] = useState(false);
 
   return (
@@ -14,7 +13,6 @@ export default function CustomersTab() {
         <div className="bg-[#f3fbf6] py-3 text-center text-gray-600 text-[14px]">
           Net Balance{" "}
           <span className="font-semibold text-gray-800 ml-1">
-            {/* Condition: isHidden true হলে '...' দেখাবে, না হলে '0.0৳' */}
             {isHidden ? "..." : "0.0৳"}
           </span>
         </div>
@@ -38,10 +36,9 @@ export default function CustomersTab() {
         {/* Hide/Show Button */}
         <div className="border-t border-gray-100 py-2.5 bg-white">
           <button
-            onClick={() => setIsHidden(!isHidden)} // বাটনে ক্লিক করলে State উল্টে যাবে (true/false)
+            onClick={() => setIsHidden(!isHidden)}
             className="w-full flex items-center justify-center gap-2 text-[#10b981] text-[14px] font-medium hover:bg-gray-50 transition-colors"
           >
-            {/* Condition: isHidden true হলে Eye আইকন এবং "Show" টেক্সট দেখাবে */}
             {isHidden ? (
               <>
                 <Eye className="w-4 h-4" /> Show

@@ -8,25 +8,20 @@ export default function AuthGuard({ children }) {
   const router = useRouter();
   const pathname = usePathname();
 
-  // যে পেজগুলোতে লগিন ছাড়াই ঢোকা যাবে (Public Routes)
-  const publicRoutes = ["/login", "/otp", "/setup"];
-
   useEffect(() => {
-    // যদি লোডিং শেষ হয়, তখনই চেক করবে
+    // Public Routes
+    const publicRoutes = ["/login", "/otp", "/setup"];
     if (!isLoading) {
       const isPublicRoute = publicRoutes.includes(pathname);
 
       if (!user && !isPublicRoute) {
-        // ১. যদি ইউজার লগিন না থাকে এবং প্রাইভেট পেজে যেতে চায় -> লগিন পেজে পাঠাও
         router.push("/login");
       } else if (user && isPublicRoute) {
-        // ২. যদি ইউজার অলরেডি লগিন থাকে এবং লগিন/ওটিপি পেজে যেতে চায় -> হোম পেজে পাঠাও
         router.push("/");
       }
     }
-  }, [user, isLoading, pathname, router,]);
+  }, [user, isLoading, pathname, router]);
 
-  // লোডিং অবস্থায় কিছুই দেখাবে না বা লোডার দেখাবে
   if (isLoading) {
     return (
       <div className="h-screen flex items-center justify-center bg-[#f2fcf6]">
@@ -35,7 +30,6 @@ export default function AuthGuard({ children }) {
     );
   }
 
-  // ইউজার লগিন না থাকলে এবং প্রাইভেট রাউটে থাকলে কন্টেন্ট রেন্ডার করবে না (ফ্লিকারিং বন্ধ করতে)
   if (!user && !publicRoutes.includes(pathname)) {
     return null;
   }
