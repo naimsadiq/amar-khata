@@ -8,6 +8,7 @@ import {
   UserPlus,
   ChevronRight,
 } from "lucide-react";
+import Link from "next/link";
 
 export default function CustomersPage() {
   const router = useRouter();
@@ -52,7 +53,10 @@ export default function CustomersPage() {
 
           {/* Add A Customer Button (List Item) */}
           <div className="px-4 mt-4">
-            <button className="w-full flex items-center bg-white hover:bg-gray-50 p-2 rounded-xl transition-colors group">
+            <Link
+              href="/add-customer"
+              className="w-full flex items-center bg-white hover:bg-gray-50 p-2 rounded-xl transition-colors group"
+            >
               {/* Green Icon Circle */}
               <div className="w-12 h-12 bg-[#10b981] rounded-full flex items-center justify-center text-white shadow-sm">
                 <UserPlus className="w-6 h-6" />
@@ -65,7 +69,7 @@ export default function CustomersPage() {
 
               {/* Arrow Icon */}
               <ChevronRight className="w-5 h-5 text-[#10b981] ml-auto group-hover:translate-x-1 transition-transform" />
-            </button>
+            </Link>
           </div>
         </div>
       </div>

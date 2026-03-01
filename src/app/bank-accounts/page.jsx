@@ -40,7 +40,7 @@ export default function BankAccountsPage() {
           {/* Info Text (Italic text with link) */}
           <div className="px-5 pb-5">
             <p className="text-gray-500 text-[14px] leading-relaxed italic">
-              If you don't have a bank, you can create a custom bank then add
+              If you don&apos;t have a bank, you can create a custom bank then add
               accounts to it. To create a custom bank,{" "}
               <Link
                 href="#"
