@@ -8,9 +8,10 @@ export default function AuthGuard({ children }) {
   const router = useRouter();
   const pathname = usePathname();
 
+  // Public Routes
+  const publicRoutes = ["/login", "/otp", "/setup"];
+
   useEffect(() => {
-    // Public Routes
-    const publicRoutes = ["/login", "/otp", "/setup"];
     if (!isLoading) {
       const isPublicRoute = publicRoutes.includes(pathname);
 

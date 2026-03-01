@@ -1,6 +1,7 @@
 "use client";
 import React, { useState } from "react";
-import { EyeOff, Eye, Search, Landmark } from "lucide-react";
+import { EyeOff, Eye, Search, Landmark, UserPlus } from "lucide-react";
+import Link from "next/link";
 
 export default function AccountTab() {
   const [isHidden, setIsHidden] = useState(false);
@@ -20,7 +21,7 @@ export default function AccountTab() {
             <div className="text-[#10b981] text-2xl font-bold mb-1">
               {isHidden ? "..." : "0.00৳"}
             </div>
-            
+
             <div className="text-gray-400 text-[12px]">Total In</div>
           </div>
           <div className="flex-1 py-4 text-center">
@@ -69,9 +70,12 @@ export default function AccountTab() {
       </div>
 
       {/* Floating Add Button (Bank Icon) */}
-      <button className="absolute bottom-20 right-5 bg-[#10b981] text-white p-4 rounded-full shadow-lg hover:bg-[#0e9f6e] hover:-translate-y-1 transition-all active:scale-95 z-20">
+      <Link
+        href="/bank-accounts"
+        className="fixed sm:absolute bottom-20 right-5 bg-[#10b981] text-white p-4 rounded-full shadow-lg hover:bg-[#0e9f6e] hover:-translate-y-1 transition-all active:scale-95 z-20 flex items-center justify-center"
+      >
         <Landmark className="w-6 h-6" />
-      </button>
+      </Link>
     </div>
   );
 }

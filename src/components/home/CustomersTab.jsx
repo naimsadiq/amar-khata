@@ -1,6 +1,7 @@
 "use client";
 import React, { useState } from "react";
 import { EyeOff, Eye, Search, UserPlus } from "lucide-react";
+import Link from "next/link";
 
 export default function CustomersTab() {
   const [isHidden, setIsHidden] = useState(false);
@@ -71,9 +72,12 @@ export default function CustomersTab() {
       </div>
 
       {/* Floating Add Button */}
-      <button className="fixed sm:absolute bottom-20 right-5 bg-[#10b981] text-white p-4 rounded-full shadow-lg hover:bg-[#0e9f6e] hover:shadow-xl hover:-translate-y-1 transition-all active:scale-95 z-20">
-        <UserPlus className="w-6 h-6" />
-      </button>
+      <Link
+        href="/customers"
+        className="fixed sm:absolute bottom-20 right-5 bg-[#10b981] text-white p-4 rounded-full shadow-lg hover:bg-[#0e9f6e] hover:-translate-y-1 transition-all active:scale-95 z-20 flex items-center justify-center"
+      >
+        <UserPlus className="w-6 h-6" />{" "}
+      </Link>
     </div>
   );
 }
