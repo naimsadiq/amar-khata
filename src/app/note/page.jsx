@@ -2,6 +2,7 @@
 import React from "react";
 import AppLayout from "@/components/layout/AppLayout";
 import { History, Search, Plus } from "lucide-react";
+import Link from "next/link";
 
 export default function NotePage() {
   return (
@@ -44,9 +45,12 @@ export default function NotePage() {
       </div>
 
       {/* Floating Action Button */}
-      <button className="absolute bottom-20 right-5 bg-[#10b981] text-white p-4 rounded-2xl shadow-lg hover:bg-[#0e9f6e] hover:-translate-y-1 transition-all active:scale-95 z-20">
+      <Link
+        href="/create-note"
+        className="absolute bottom-20 right-5 bg-[#10b981] text-white p-4 rounded-2xl shadow-lg hover:bg-[#0e9f6e] hover:-translate-y-1 transition-all active:scale-95 z-20 flex items-center justify-center"
+      >
         <Plus className="w-7 h-7" />
-      </button>
+      </Link>
     </AppLayout>
   );
 }
