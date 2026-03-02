@@ -46,7 +46,7 @@ export default function CustomersPage() {
               <input
                 type="text"
                 placeholder="Search Customers"
-                className="w-full bg-[#f4f4f5] border border-transparent rounded-full py-3.5 pl-12 pr-4 text-[15px] outline-none focus:border-[#10b981] focus:bg-white focus:ring-1 focus:ring-[#10b981] transition-all"
+                className="w-full bg-[#f4f4f5] border border-transparent rounded-full py-3.5 pl-12 pr-4 text-gray-800 text-[15px] outline-none focus:border-[#10b981] focus:bg-white focus:ring-1 focus:ring-[#10b981] transition-all"
               />
             </div>
           </div>

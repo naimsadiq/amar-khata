@@ -2,6 +2,7 @@
 import React, { useState } from "react";
 import { useRouter } from "next/navigation";
 import { ArrowLeft, Contact } from "lucide-react";
+import toast from "react-hot-toast";
 
 export default function AddCustomerPage() {
   const router = useRouter();
@@ -11,7 +12,7 @@ export default function AddCustomerPage() {
 
   const handleSave = () => {
     if (!customerName || !phoneNumber) {
-      alert("Please fill out both fields!");
+      toast.error("Please fill out both fields!");
       return;
     }
 
