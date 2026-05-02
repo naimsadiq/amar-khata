@@ -1,0 +1,186 @@
+{
+  "stats": [
+    {
+      "label": "মোট ব্যালেন্স",
+      "value": "৳১,৪৫,২৩০",
+      "change": "+৬২%",
+      "subtext": "এই মাসে",
+      "changeType": "up",
+      "color": "green"
+    },
+    {
+      "label": "হাতে নগদ",
+      "value": "৳৬৩,৫৫০",
+      "change": "+৮%",
+      "subtext": "গত সপ্তাহের তুলনায়",
+      "changeType": "up",
+      "color": "blue"
+    },
+    {
+      "label": "মোট পাওনা",
+      "value": "৳৬৬,৮০০",
+      "change": "৫ জন বকেয়া",
+      "subtext": "মোট গ্রাহক",
+      "changeType": "down",
+      "color": "amber"
+    },
+    {
+      "label": "মোট দেনা",
+      "value": "৳২৩,৭৮০",
+      "change": "৩ জন সাপ্লায়ার",
+      "subtext": "",
+      "changeType": "neutral",
+      "color": "red"
+    }
+  ],
+  "alerts": [
+    { "text": "স্টক শেষ হওয়ার পথে", "count": "৪টি পণ্য", "type": "red" },
+    { "text": "দীর্ঘ বকেয়া (৩০+ দিন)", "count": "২ জন", "type": "amber" },
+    { "text": "আজকের বিক্রয় লক্ষ্য", "count": "৭২% অর্জিত", "type": "blue" },
+    { "text": "আজকের POS বিল সংখ্যা", "count": "১৪টি", "type": "green" }
+  ],
+  "weeklySales": {
+    "chartData": [
+      { "day": "সোম", "thisWeek": 8800, "lastWeek": 7200 },
+      { "day": "মঙ্গল", "thisWeek": 7200, "lastWeek": 6800 },
+      { "day": "বুধ", "thisWeek": 11400, "lastWeek": 9000 },
+      { "day": "বৃহ", "thisWeek": 8000, "lastWeek": 7400 },
+      { "day": "শুক্র", "thisWeek": 5600, "lastWeek": 6200 },
+      { "day": "শনি", "thisWeek": 9300, "lastWeek": 8100 },
+      { "day": "রবি", "thisWeek": 4800, "lastWeek": 5200 }
+    ]
+  },
+  "dueReceivables": [
+    {
+      "initials": "র",
+      "name": "রহিম স্টোর",
+      "amount": "৳১৮,৫০০",
+      "daysOverdue": 45,
+      "riskLevel": "high"
+    },
+
+    {
+      "initials": "আ",
+      "name": "আবুল ব্রাদার্স",
+      "amount": "৳৫,৫০০",
+      "daysOverdue": 8,
+      "riskLevel": "low"
+    },
+    {
+      "initials": "স",
+      "name": "সালাম সবজি ভান্ডার",
+      "amount": "৳২২,৮০০",
+      "daysOverdue": 62,
+      "riskLevel": "high"
+    }
+  ],
+  "topProducts": [
+    {
+      "rank": "#১",
+      "name": "বাসমতি চাল (৫০কেজি)",
+      "amount": "৳১৮,৪০০",
+      "progress": 90
+    },
+    {
+      "rank": "#২",
+      "name": "সয়াবিন তেল (৫লি)",
+      "amount": "৳১২,৬০০",
+      "progress": 70
+    },
+    {
+      "rank": "#৫",
+      "name": "সয়াবিন তেল (৫লি)",
+      "amount": "৳১২,৬০০",
+      "progress": 70
+    },
+    {
+      "rank": "#৩",
+      "name": "চিনি (১কেজি)",
+      "amount": "৳৯,৮৫০",
+      "progress": 55
+    },
+    { "rank": "#৪", "name": "ডাল (২কেজি)", "amount": "৳৭,২০০", "progress": 38 }
+  ],
+  "stockAlerts": [
+    {
+      "status": "শেষ হচ্ছে",
+      "name": "সয়াবিন তেল",
+      "quantity": "মাত্র ৩টি",
+      "type": "critical"
+    },
+    {
+      "status": "শেষ হচ্ছে",
+      "name": "সয়াবিন তেল",
+      "quantity": "মাত্র ৩টি",
+      "type": "critical"
+    },
+    {
+      "status": "কম",
+      "name": "চিনি ১কেজি",
+      "quantity": "১২টি বাকি",
+      "type": "low"
+    },
+    {
+      "status": "কম",
+      "name": "চিনি ১কেজি",
+      "quantity": "১২টি বাকি",
+      "type": "low"
+    },
+
+    {
+      "status": "শেষ হচ্ছে",
+      "name": "মসলা প্যাক",
+      "quantity": "মাত্র ১টি",
+      "type": "critical"
+    }
+  ],
+  "recentTransactions": [
+    {
+      "initials": "ক",
+      "name": "করিম মিয়া",
+      "type": "বকেয়া পরিশোধ",
+      "amount": "+৳৬৫,০০০",
+      "transactionType": "in"
+    },
+    {
+      "initials": "মে",
+      "name": "মেসার্স আলম ট্রেডার্স",
+      "type": "মাল ক্রয়",
+      "amount": "-৳১২,৫০০",
+      "transactionType": "out"
+    },
+    {
+      "initials": "P",
+      "name": "POS বিল #১০৮৫",
+      "type": "নগদ বিক্রয়",
+      "amount": "+৳৩,২৬০",
+      "transactionType": "pos"
+    },
+    {
+      "initials": "P",
+      "name": "POS বিল #১০৮৫",
+      "type": "নগদ বিক্রয়",
+      "amount": "+৳৩,২৬০",
+      "transactionType": "pos"
+    },
+    {
+      "initials": "P",
+      "name": "POS বিল #১০৮৫",
+      "type": "নগদ বিক্রয়",
+      "amount": "+৳৩,২৬০",
+      "transactionType": "pos"
+    },
+    {
+      "initials": "র",
+      "name": "রশিদ এন্টারপ্রাইজ",
+      "type": "দেনা পরিশোধ",
+      "amount": "-৳৮,০০০",
+      "transactionType": "out"
+    }
+  ],
+  "monthlyProfit": {
+    "totalIncome": "৳১,১২,৪০০",
+    "totalExpense": "-৳৬৮,২০০",
+    "netProfit": "৳৪৪,২০০"
+  }
+}

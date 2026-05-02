@@ -1,0 +1,101 @@
+[
+  {
+    "id": "C001",
+    "name": "রহিম স্টোর",
+    "init": "র",
+    "av": "bg-[#e8f5ee] text-[#0f5234]",
+    "type": "customer",
+    "phone": "০১৭১১-২৩৪৫৬৭",
+    "addr": "রাজশাহী সদর",
+    "lastTxn": "৩ দিন আগে",
+    "lastDays": 3,
+    "due": 48000,
+    "overdue": true,
+    "dueDays": 45,
+    "txns": [
+      {
+        "desc": "বিক্রয় ইনভয়েস #০৮৫",
+        "meta": "নগদ বিক্রয়",
+        "amt": "+৳১৫,০০০",
+        "date": "২৫ এপ্রিল",
+        "green": true
+      },
+      {
+        "desc": "নগদ প্রাপ্তি",
+        "meta": "আংশিক পরিশোধ",
+        "amt": "-৳৮,০০০",
+        "date": "১৮ এপ্রিল",
+        "green": false
+      }
+    ]
+  },
+  {
+    "id": "S001",
+    "name": "মেসার্স আলম ট্রেডার্স",
+    "init": "ম",
+    "av": "bg-[#faeeda] text-[#854f0b]",
+    "type": "supplier",
+    "phone": "০১৯৩৩-৪৫৬৭৮৯",
+    "addr": "নওগাঁ রোড",
+    "lastTxn": "২ দিন আগে",
+    "lastDays": 2,
+    "due": -12500,
+    "overdue": false,
+    "dueDays": 0,
+    "txns": [
+      {
+        "desc": "মাল ক্রয়",
+        "meta": "সয়াবিন তেল ৫০ লিটার",
+        "amt": "-৳১২,৫০০",
+        "date": "২৬ এপ্রিল",
+        "green": false
+      }
+    ]
+  },
+  {
+    "id": "C002",
+    "name": "আবুল ব্রাদার্স",
+    "init": "আ",
+    "av": "bg-[#e3f0ff] text-[#1565c0]",
+    "type": "customer",
+    "phone": "০১৮২২-৩৪৫৬৭৮",
+    "addr": "বোয়ালিয়া",
+    "lastTxn": "৮ দিন আগে",
+    "lastDays": 8,
+    "due": 60000,
+    "overdue": false,
+    "dueDays": 8,
+    "txns": [
+      {
+        "desc": "বিক্রয় ইনভয়েস #০৮৩",
+        "meta": "বাকি বিক্রয়",
+        "amt": "+৳২০,০০০",
+        "date": "২২ এপ্রিল",
+        "green": true
+      }
+    ]
+  },
+  {
+    "id": "S002",
+    "name": "রশিদ এন্টারপ্রাইজ",
+    "init": "রা",
+    "av": "bg-[#eeedfe] text-[#534ab7]",
+    "type": "supplier",
+    "phone": "০১৭৭৭-৬৭৮৯০১",
+    "addr": "কাজলা মোড়",
+    "lastTxn": "আজ",
+    "lastDays": 0,
+    "due": -88000,
+    "overdue": false,
+    "dueDays": 0,
+    "txns": [
+      {
+        "desc": "দেনা পরিশোধ",
+        "meta": "ব্যাংক ট্রান্সফার",
+        "amt": "-৳৮৮,০০০",
+        "date": "আজ",
+        "green": false
+      }
+    ]
+  }
+]

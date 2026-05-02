@@ -1,0 +1,125 @@
+{
+  "headerDate": "মঙ্গলবার, ২৮ এপ্রিল, ২০২৬",
+  "kpis": [
+    {
+      "id": 1,
+      "icon": "💰",
+      "label": "মোট আয়",
+      "value": "৳ ৫,৬৬,৮০০",
+      "changeText": "↑ ১৪% গত মাসের তুলনায়",
+      "changeType": "up",
+      "colorClass": "text-[#2ea86b]"
+    },
+    {
+      "id": 2,
+      "icon": "📤",
+      "label": "মোট ব্যয়",
+      "value": "৳ ৩,২৪,৫০০",
+      "changeText": "↑ ৮% গত মাসের তুলনায়",
+      "changeType": "down",
+      "colorClass": "text-[#e53935]"
+    },
+    {
+      "id": 3,
+      "icon": "📈",
+      "label": "নিট মুনাফা",
+      "value": "৳ ২,৪২,৩০০",
+      "changeText": "↑ ২৩% গত মাসের তুলনায়",
+      "changeType": "up",
+      "colorClass": "text-[#2563eb]"
+    },
+    {
+      "id": 4,
+      "icon": "🧾",
+      "label": "মোট ইনভয়েস",
+      "value": "১২৪",
+      "changeText": "↑ ১৮ টি বেশি",
+      "changeType": "up",
+      "colorClass": "text-[#1a2236]"
+    }
+  ],
+  "barChart": {
+    "months": [
+      "জান",
+      "ফেব",
+      "মার",
+      "এপ্র",
+      "মে",
+      "জুন",
+      "জুল",
+      "আগ",
+      "সেপ",
+      "অক্ট",
+      "নভ",
+      "ডিস"
+    ],
+    "income": [28, 32, 38, 45, 42, 50, 48, 55, 52, 60, 57, 63],
+    "expense": [18, 22, 24, 28, 26, 32, 30, 35, 33, 38, 36, 40],
+    "currentMonthIndex": 3
+  },
+  "donutChart": [
+    { "id": 1, "label": "পণ্য ক্রয়", "pct": "৪২%", "color": "#2ea86b" },
+    { "id": 2, "label": "বেতন", "pct": "২৮%", "color": "#3b82f6" },
+    { "id": 3, "label": "ভাড়া/বিল", "pct": "১৮%", "color": "#f59e0b" },
+    { "id": 4, "label": "অন্যান্য", "pct": "১২%", "color": "#f87171" }
+  ],
+  "topCustomers": [
+    {
+      "id": 1,
+      "rank": "১",
+      "name": "আবুল ব্রাদার্স",
+      "txn": "১২",
+      "total": "১,৮০,০০০",
+      "progress": 100,
+      "rankBg": "bg-[#fef3c7]",
+      "rankColor": "text-[#92400e]"
+    },
+    {
+      "id": 2,
+      "rank": "২",
+      "name": "রহিম স্টোর",
+      "txn": "৮",
+      "total": "১,৪৫,০০০",
+      "progress": 80,
+      "rankBg": "bg-[#e5e7eb]",
+      "rankColor": "text-[#374151]"
+    },
+    {
+      "id": 3,
+      "rank": "৩",
+      "name": "করিম ট্রেডার্স",
+      "txn": "৬",
+      "total": "৯৮,৫০০",
+      "progress": 55,
+      "rankBg": "bg-[#fde8d8]",
+      "rankColor": "text-[#9a3412]"
+    },
+    {
+      "id": 4,
+      "rank": "৪",
+      "name": "নাসরিন স্টোর",
+      "txn": "৫",
+      "total": "৭৫,০০০",
+      "progress": 42,
+      "rankBg": "bg-[#f4f6fb]",
+      "rankColor": "text-[#7a8aaa]"
+    },
+    {
+      "id": 5,
+      "rank": "৫",
+      "name": "মেসার্স আলম",
+      "txn": "৪",
+      "total": "৬২,৫০০",
+      "progress": 35,
+      "rankBg": "bg-[#f4f6fb]",
+      "rankColor": "text-[#7a8aaa]"
+    }
+  ],
+  "monthlySummary": {
+    "prevMonth": "মার্চ ২০২৬",
+    "prevTotal": "৳ ৪,৯৬,৫০০",
+    "currMonth": "এপ্রিল ২০২৬",
+    "currTotal": "৳ ৫,৬৬,৮০০",
+    "growth": "+১৪.১%"
+  }
+}

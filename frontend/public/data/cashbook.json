@@ -1,0 +1,67 @@
+{
+  "summary": {
+    "totalIncome": "৮১,১২,৮০০",
+    "incomeTrend": "↑ +৬২%",
+    "totalExpense": "৩৩৮,২০০",
+    "expenseTrend": "↓ -৮%",
+    "netBalance": "৮৬৩,৬৫০"
+  },
+  "transactions": [
+    {
+      "id": 1,
+      "date": "২৮ এপ্রিল",
+      "description": "করিম মিয়া – বকেয়া পরিশোধ",
+      "type": "income",
+      "amount": "+৳৫৫০,০০০",
+      "note": "বকেয়া ক্লিয়ার"
+    },
+    {
+      "id": 2,
+      "date": "২৮ এপ্রিল",
+      "description": "POS বিল #০৮৫ – নগদ বিক্রয়",
+      "type": "income",
+      "amount": "+৳৩,২৬০",
+      "note": "–"
+    },
+    {
+      "id": 3,
+      "date": "২৭ এপ্রিল",
+      "description": "মেসার্স আলম ট্রেডার্স – মাল ক্রয়",
+      "type": "expense",
+      "amount": "-৳৬২,৫০০",
+      "note": "সয়াবিন তেল ক্রয়"
+    },
+    {
+      "id": 4,
+      "date": "২৭ এপ্রিল",
+      "description": "POS বিল #০৮৪ – নগদ বিক্রয়",
+      "type": "income",
+      "amount": "+৳৩,২৬০",
+      "note": "–"
+    },
+    {
+      "id": 5,
+      "date": "২৬ এপ্রিল",
+      "description": "রশিদ এন্টারপ্রাইজ – দেনা পরিশোধ",
+      "type": "expense",
+      "amount": "-৳৮৮,০০০",
+      "note": "মাসিক পেমেন্ট"
+    },
+    {
+      "id": 6,
+      "date": "২৫ এপ্রিল",
+      "description": "আবুল ব্রাদার্স – বকেয়া আদায়",
+      "type": "income",
+      "amount": "+৳৩৫,০০০",
+      "note": "আংশিক পেমেন্ট"
+    },
+    {
+      "id": 7,
+      "date": "২৪ এপ্রিল",
+      "description": "স্টাফ বেতন – এপ্রিল",
+      "type": "expense",
+      "amount": "-৳১,২০,০০০",
+      "note": "৩ জন স্টাফ"
+    }
+  ]
+}

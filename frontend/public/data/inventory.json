@@ -1,0 +1,76 @@
+{
+  "summary": {
+    "totalProducts": "৪৮টি",
+    "lowStock": "৫টি",
+    "outOfStock": "২টি",
+    "totalValue": "৳৩,৪৫,০০০"
+  },
+  "products": [
+    {
+      "id": 1,
+      "name": "বাসমতি চাল",
+      "category": "চাল/ডাল",
+      "stock": "৫০ কেজি",
+      "progress": 70,
+      "buyPrice": "৳৮০/কেজি",
+      "sellPrice": "৳৯৫/কেজি",
+      "status": "ok",
+      "statusText": "স্বাভাবিক"
+    },
+    {
+      "id": 2,
+      "name": "সয়াবিন তেল (৫লি)",
+      "category": "তেল",
+      "stock": "৩টি",
+      "progress": 15,
+      "buyPrice": "৳৭৮০/পিস",
+      "sellPrice": "৳৮৫০/পিস",
+      "status": "low",
+      "statusText": "শেষ হচ্ছে"
+    },
+    {
+      "id": 3,
+      "name": "চিনি (১কেজি)",
+      "category": "মশলা",
+      "stock": "১ বাকি",
+      "progress": 5,
+      "buyPrice": "৳১১৫/কেজি",
+      "sellPrice": "৳১৩০/কেজি",
+      "status": "low",
+      "statusText": "শেষ হচ্ছে"
+    },
+    {
+      "id": 4,
+      "name": "মসুর ডাল (২কেজি)",
+      "category": "চাল/ডাল",
+      "stock": "০ (শেষ)",
+      "progress": 0,
+      "buyPrice": "৳১৪০/কেজি",
+      "sellPrice": "৳১৬০/কেজি",
+      "status": "out",
+      "statusText": "শেষ"
+    },
+    {
+      "id": 5,
+      "name": "মসলা প্যাক",
+      "category": "মশলা",
+      "stock": "৯টি",
+      "progress": 8,
+      "buyPrice": "৳২৪০/পিস",
+      "sellPrice": "৳২৮০/পিস",
+      "status": "low",
+      "statusText": "শেষ হচ্ছে"
+    },
+    {
+      "id": 6,
+      "name": "আটা (২কেজি)",
+      "category": "চাল/ডাল",
+      "stock": "২৫টি",
+      "progress": 60,
+      "buyPrice": "৳৯০/পিস",
+      "sellPrice": "৳১০৫/পিস",
+      "status": "ok",
+      "statusText": "স্বাভাবিক"
+    }
+  ]
+}
