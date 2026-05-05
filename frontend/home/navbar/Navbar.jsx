@@ -11,7 +11,7 @@ export default function Navbar() {
 
   // useAuth থেকে user এবং logout ফাংশন নিয়ে আসা হচ্ছে (আপনার হুকের রিটার্ন অনুযায়ী পরিবর্তন করে নিতে পারেন)
   const { user, logout, loading } = useAuth();
-  console.log("Navbar - User:", user, "Loading:", loading);
+  // console.log("Navbar - User:", user, "Loading:", loading);
 
   return (
     <header className="sticky top-0 w-full border-b border-gray-200 bg-[#FBFBFB] z-50">

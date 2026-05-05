@@ -5,7 +5,9 @@ export default function PosHeader({ billNo }) {
         POS / বিলিং
       </span>
       <div className="flex gap-[10px] items-center">
-        <span className="text-[0.8rem] text-[#7f8c9a]">বিল #{billNo}</span>
+        <span className="text-[0.8rem] text-[#7f8c9a] font-medium bg-gray-50 px-2 py-1 rounded border">
+          {billNo}
+        </span>
         <button className="px-[14px] py-[6px] bg-white border border-[#e8ecf0] rounded-[6px] text-[0.78rem] font-semibold text-[#2c3e50] cursor-pointer hover:border-[#2ecc71] hover:text-[#2ecc71] transition-colors">
           পুরনো বিল
         </button>

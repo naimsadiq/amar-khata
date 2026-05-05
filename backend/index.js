@@ -42,6 +42,9 @@ async function run() {
 
     const userCollection = db.collection("users");
     const partiesCollection = db.collection("parties");
+    const productsCollection = db.collection("products");
+    const transactionsCollection = db.collection("transactions");
+    const invoicesCollection = db.collection("invoices");
 
     //login check
     app.get("/api/auth/me", async (req, res) => {
@@ -270,7 +273,7 @@ async function run() {
             name: user.name,
             phone: user.phone,
             businessName: user.businessName,
-            d,
+            businessId: user.businessId,
           }, // পাসওয়ার্ড/পিন বাদে ইউজারের বেসিক ইনফো পাঠাতে পারেন
         });
       } catch (error) {
@@ -293,7 +296,7 @@ async function run() {
           updatedAt: new Date(),
         };
 
-        console.log("Received party data:", nuwParty);
+        // console.log("Received party data:", nuwParty);
         await partiesCollection.insertOne(nuwParty);
         res
           .status(201)
@@ -322,8 +325,6 @@ async function run() {
     });
 
     // GET a single party by its ID
-    // GET a single party by its unique MongoDB _id
-    // প্রস্তাবিত URL: /api/parties/69f56b698289cba5f4957fa6
     app.get("/api/parties/:partyId", authMiddleware, async (req, res) => {
       try {
         const { partyId } = req.params;
@@ -347,6 +348,269 @@ async function run() {
         res.status(200).send(party);
       } catch (error) {
         console.error("❌ Error fetching single party:", error);
+        res.status(500).send({ message: "Server error", error: error.message });
+      }
+    });
+
+    // POST: নতুন পণ্য (Product) যোগ করার API
+    app.post("/api/inventory", authMiddleware, async (req, res) => {
+      try {
+        const product = req.body;
+        const user = req.user;
+
+        // নতুন প্রোডাক্ট অবজেক্ট তৈরি এবং নাম্বার ফিল্ডগুলো নিশ্চিত করা
+        const newProduct = {
+          name: product.name,
+          category: product.category,
+          unit: product.unit,
+          buyPrice: Number(product.buyPrice) || 0,
+          sellPrice: Number(product.sellPrice) || 0,
+          stockQuantity: Number(product.stockQuantity) || 0,
+          lowStockAlert: Number(product.lowStockAlert) || 5,
+
+          // ইউজারের ইনফরমেশন (Multi-tenant এর জন্য)
+          userEmail: user.email,
+          userPhone: user.phone,
+          businessId: user.businessId,
+          businessName: user.businessName,
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        };
+
+        console.log("Received product data:", newProduct);
+
+        // productsCollection এ ডাটা সেভ করা (আপনার ডাটাবেস কালেকশনের নাম অনুযায়ী বদলাতে পারেন)
+        await productsCollection.insertOne(newProduct);
+
+        res.status(201).send({
+          message: "Product created successfully",
+          product: newProduct,
+        });
+      } catch (error) {
+        console.error("❌ Error adding product:", error);
+        res.status(500).send({ message: "Server error", error: error.message });
+      }
+    });
+
+    // GET: ইউজারের সব পণ্য দেখার API
+    app.get("/api/inventory", authMiddleware, async (req, res) => {
+      try {
+        const user = req.user;
+
+        // শুধুমাত্র ঐ ইউজারের/দোকানের প্রোডাক্টগুলো আনা হবে
+        const query = { businessId: user.businessId };
+
+        // লেটেস্ট প্রোডাক্ট উপরে রাখার জন্য .sort({ createdAt: -1 }) ব্যবহার করা হয়েছে
+        const products = await productsCollection
+          .find(query)
+          .sort({ createdAt: -1 })
+          .toArray();
+
+        res.status(200).send(products);
+      } catch (error) {
+        console.error("❌ Error fetching products:", error);
+        res.status(500).send({ message: "Server error", error: error.message });
+      }
+    });
+
+    // 1. নতুন ক্যাশবুক লেনদেন যোগ করার API (Cash IN/OUT)
+    //=================================================
+    app.post("/api/cashbook", authMiddleware, async (req, res) => {
+      try {
+        const { date, type, amount, description, note, category, partyId } =
+          req.body;
+        const user = req.user;
+
+        // ১. ডাটাবেসে সেভ করার জন্য নতুন লেনদেন অবজেক্ট তৈরি
+        const newTransaction = {
+          businessId: user.businessId,
+          userEmail: user.email,
+          date: new Date(date || new Date()), // যদি তারিখ না আসে, আজকের তারিখ বসবে
+          type, // ফ্রন্টএন্ড থেকে "IN" অথবা "OUT" আসবে
+          amount: Number(amount) || 0, // স্ট্রিং আসলে নাম্বারে কনভার্ট হবে
+          description,
+          note: note || "", // নোট না থাকলে খালি স্ট্রিং
+          category: category || "General", // ক্যাটাগরি না থাকলে "General"
+          partyId: partyId ? new ObjectId(partyId) : null, // partyId থাকলে उसे ObjectId-তে কনভার্ট করা হবে
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        };
+
+        console.log("Saving new transaction:", newTransaction);
+
+        // ২. `transactionsCollection`-এ নতুন লেনদেনটি সেভ করা
+        // (আপনার ডাটাবেস কালেকশনের নাম অনুযায়ী ভ্যারিয়েবল পরিবর্তন করতে পারেন)
+        await transactionsCollection.insertOne(newTransaction);
+
+        // ৩. যদি partyId থাকে, তাহলে `parties` কালেকশনে বকেয়া (Due) আপডেট করা হবে
+        if (partyId) {
+          // লজিক:
+          // টাকা পেলে (IN) কাস্টমারের বকেয়া কমে।
+          // টাকা দিলে (OUT) সাপ্লায়ারের দেনা কমে।
+          // উভয় ক্ষেত্রেই মূল বকেয়া থেকে টাকা বিয়োগ হবে।
+          const dueUpdateAmount = -Math.abs(Number(amount) || 0);
+
+          await partiesCollection.updateOne(
+            { _id: new ObjectId(partyId) },
+            { $inc: { openingBalance: dueUpdateAmount } }, // $inc দিয়ে পারমাণবিক (atomic) ভাবে যোগ/বিয়োগ করা হয়
+          );
+        }
+
+        res.status(201).send({
+          message: "লেনদেন সফলভাবে যোগ করা হয়েছে",
+          transaction: newTransaction,
+        });
+      } catch (error) {
+        console.error("❌ Error adding transaction:", error);
+        res.status(500).send({ message: "Server error", error: error.message });
+      }
+    });
+
+    // 2. সব লেনদেন এবং সামারি ডাটা পাওয়ার API
+    //===========================================================
+    app.get("/api/cashbook", authMiddleware, async (req, res) => {
+      try {
+        const user = req.user;
+
+        // ১. শুধুমাত্র বর্তমান ইউজারের/দোকানের সব লেনদেন খুঁজে বের করা
+        // তারিখ অনুযায়ী নতুনগুলো উপরে থাকবে (Descending order)
+        const transactions = await transactionsCollection
+          .find({ businessId: user.businessId })
+          .sort({ date: -1, createdAt: -1 })
+          .toArray();
+
+        // ২. সামারি কার্ডের জন্য ক্যালকুলেশন
+        let totalIncome = 0;
+        let totalExpense = 0;
+
+        transactions.forEach((txn) => {
+          if (txn.type === "IN") {
+            totalIncome += txn.amount;
+          } else if (txn.type === "OUT") {
+            totalExpense += txn.amount;
+          }
+        });
+
+        const netBalance = totalIncome - totalExpense;
+
+        // ৩. ফ্রন্টএন্ডে একটি অবজেক্ট পাঠানো যেখানে সামারি এবং লেনদেনের তালিকা দুটোই থাকবে
+        res.status(200).send({
+          summary: {
+            totalIncome,
+            totalExpense,
+            netBalance,
+          },
+          transactions: transactions,
+        });
+      } catch (error) {
+        console.error("❌ Error fetching cashbook:", error);
+        res.status(500).send({ message: "Server error", error: error.message });
+      }
+    });
+
+    // 1. POS থেকে নতুন বিল (Invoice) তৈরি করার API
+    //=================================================
+    app.post("/api/invoices", authMiddleware, async (req, res) => {
+      try {
+        const {
+          invoiceNo,
+          items,
+          subTotal,
+          discount,
+          totalAmount,
+          paidAmount,
+          dueAmount,
+          partyId,
+        } = req.body;
+
+        const user = req.user;
+        const now = new Date();
+
+        // কাস্টমার সিলেক্ট না করলে partyId "none" আসতে পারে, সেটা হ্যান্ডেল করা
+        const validPartyId =
+          partyId && partyId !== "none" ? new ObjectId(partyId) : null;
+
+        // ১. Invoices কালেকশনে বিল সেভ করা
+        const newInvoice = {
+          businessId: user.businessId,
+          userEmail: user.email,
+          invoiceNo,
+          date: now,
+          items,
+          subTotal: Number(subTotal),
+          discount: Number(discount),
+          totalAmount: Number(totalAmount),
+          paidAmount: Number(paidAmount),
+          dueAmount: Number(dueAmount),
+          partyId: validPartyId,
+          createdAt: now,
+        };
+
+        // (আপনার ডাটাবেস কালেকশনের নাম invoicesCollection ধরে নিচ্ছি)
+        const invoiceResult = await invoicesCollection.insertOne(newInvoice);
+
+        // ২. Inventory (Products) কালেকশন থেকে বিক্রি হওয়া স্টক কমানো
+        // items অ্যারের প্রতিটা প্রোডাক্টের জন্য লুপ চলবে
+        for (const item of items) {
+          await productsCollection.updateOne(
+            { _id: new ObjectId(item.productId) },
+            { $inc: { stockQuantity: -Number(item.quantity) } }, // $inc দিয়ে মাইনাস করা হচ্ছে
+          );
+        }
+
+        // ৩. Cashbook (Transactions) আপডেট করা (যদি নগদ টাকা দিয়ে থাকে)
+        if (Number(paidAmount) > 0) {
+          const newTransaction = {
+            businessId: user.businessId,
+            userEmail: user.email,
+            date: now,
+            type: "IN", // টাকা পেলাম
+            amount: Number(paidAmount),
+            description: `POS বিল ${invoiceNo} - নগদ বিক্রয়`,
+            note: "POS সেলস",
+            category: "Sales",
+            partyId: validPartyId,
+            invoiceId: invoiceResult.insertedId,
+            createdAt: now,
+          };
+          await transactionsCollection.insertOne(newTransaction);
+        }
+
+        // ৪. Party (Customer) এর বকেয়া আপডেট করা (যদি বাকি থাকে)
+        if (Number(dueAmount) > 0 && validPartyId) {
+          // বকেয়া বিক্রি হলে কাস্টমারের due (বা openingBalance) বেড়ে যাবে
+          await partiesCollection.updateOne(
+            { _id: validPartyId },
+            { $inc: { openingBalance: Number(dueAmount) } }, // dueAmount যোগ হবে
+          );
+        }
+
+        res.status(201).send({
+          message: "বিল সফলভাবে তৈরি হয়েছে এবং স্টক, ক্যাশবুক আপডেট হয়েছে!",
+          invoiceId: invoiceResult.insertedId,
+        });
+      } catch (error) {
+        console.error("❌ Error creating invoice:", error);
+        res.status(500).send({ message: "Server error", error: error.message });
+      }
+    });
+
+    //=================================================
+    // 2. পুরনো সব বিল দেখার API (GET)
+    //=================================================
+    app.get("/api/invoices", authMiddleware, async (req, res) => {
+      try {
+        const user = req.user;
+
+        // বর্তমান দোকানের সব বিল লেটেস্ট থেকে পুরনো অর্ডারে আনবে
+        const invoices = await invoicesCollection
+          .find({ businessId: user.businessId })
+          .sort({ createdAt: -1 })
+          .toArray();
+
+        res.status(200).send(invoices);
+      } catch (error) {
+        console.error("❌ Error fetching invoices:", error);
         res.status(500).send({ message: "Server error", error: error.message });
       }
     });

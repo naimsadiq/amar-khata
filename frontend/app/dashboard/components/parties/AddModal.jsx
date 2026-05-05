@@ -30,7 +30,7 @@ export default function AddModal({ isOpen, onClose }) {
       name: "",
       phone: "",
       address: "",
-      openingBalance: "",
+      dueBalance: "",
     },
   });
 
@@ -71,7 +71,7 @@ export default function AddModal({ isOpen, onClose }) {
     // console.log("Form Data Before Formatting:", data);
     const formattedData = {
       ...data,
-      openingBalance: Number(data.openingBalance) || 0,
+      dueBalance: Number(data.dueBalance) || 0,
     };
     mutation.mutate(formattedData);
   };
@@ -170,7 +170,7 @@ export default function AddModal({ isOpen, onClose }) {
               </label>
               <Input
                 type="number"
-                {...register("openingBalance")}
+                {...register("dueBalance")}
                 placeholder="0.00"
                 className="h-10 rounded-lg text-sm"
               />

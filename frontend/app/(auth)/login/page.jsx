@@ -13,7 +13,7 @@ import useAuth from "@/hook/useAuth";
 import { useRouter } from "next/navigation";
 
 export default function LoginPage() {
-  const router = useRouter(); 
+  const router = useRouter();
   const { fetchUser } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
 
@@ -32,7 +32,7 @@ export default function LoginPage() {
       const result = await signIn(data.email, data.pin);
 
       if (result.success) {
-          await fetchUser(); // Update Auth Context with new user data
+        await fetchUser(); // Update Auth Context with new user data
         await Swal.fire({
           icon: "success",
           title: "লগইন সফল 🎉",

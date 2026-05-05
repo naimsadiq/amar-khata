@@ -1,15 +1,42 @@
 import { Badge } from "@/components/ui/badge";
 
+// নামের প্রথম অক্ষর বের করার ফাংশন (Initials)
+const getInitials = (name) => {
+  if (!name) return "U";
+  const words = name.split(" ");
+  if (words.length > 1) return (words[0][0] + words[1][0]).toUpperCase();
+  return name.substring(0, 2).toUpperCase();
+};
+
+
 export default function ContactCard({ contact, isSelected, onClick }) {
   const isCustomer = contact.type === "customer";
+
+  // API ডাটার সাথে সামঞ্জস্য রেখে Fallback ভ্যালু সেট করা
+  const dueAmount = contact.due ?? contact.openingBalance ?? 0;
+  const address = contact.address || contact.addr || "ঠিকানা নেই";
+  const phone = contact.phone || "নম্বর নেই";
+  const lastTxn = contact.lastTxn || contact.updatedAt;
+  const initials = contact.init || getInitials(contact.name);
+  const avatarClass =
+    contact.av ||
+    (isCustomer
+      ? "bg-[#e3f0ff] text-[#1565c0]"
+      : "bg-[#faeeda] text-[#854f0b]");
+  const isOverdue = contact.overdue ?? false;
+  const dueDays = contact.dueDays ?? 0;
+
   const amtColor =
-    contact.due > 0
+    dueAmount > 0
       ? "text-[#1a7a4a]"
-      : contact.due < 0
+      : dueAmount < 0
         ? "text-[#c0392b]"
         : "text-gray-400";
-  const amtLabel = contact.due > 0 ? "পাওনা" : contact.due < 0 ? "দেনা" : "";
-  const absDue = Math.abs(contact.due).toLocaleString("bn");
+
+  const amtLabel = dueAmount > 0 ? "পাওনা" : dueAmount < 0 ? "দেনা" : "";
+
+  // এখানে "en-IN" ব্যবহার করা হয়েছে যাতে টাকার সংখ্যা ইংরেজিতে হয় এবং কমা ঠিকমতো বসে
+  const absDue = Math.abs(dueAmount).toLocaleString("en-IN");
 
   return (
     <div
@@ -21,15 +48,15 @@ export default function ContactCard({ contact, isSelected, onClick }) {
       }`}
     >
       <div
-        className={`w-11 h-11 rounded-xl flex items-center justify-center text-lg font-semibold shrink-0 ${contact.av}`}
+        className={`w-11 h-11 rounded-xl flex items-center justify-center text-lg font-semibold shrink-0 ${avatarClass}`}
       >
-        {contact.init}
+        {initials}
       </div>
 
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-2 mb-1 flex-wrap">
           <span className="text-[15px] font-semibold text-gray-900">
-            {contact.name}
+            {contact.name || "নাম নেই"}
           </span>
           <Badge
             variant="secondary"
@@ -39,9 +66,9 @@ export default function ContactCard({ contact, isSelected, onClick }) {
           </Badge>
         </div>
         <div className="flex gap-4 flex-wrap text-xs text-gray-500">
-          <span className="flex items-center gap-1">📞 {contact.phone}</span>
-          <span className="flex items-center gap-1">📍 {contact.addr}</span>
-          <span>শেষ লেনদেন: {contact.lastTxn}</span>
+          <span className="flex items-center gap-1">📞 {phone}</span>
+          <span className="flex items-center gap-1">📍 {address}</span>
+          <span>শেষ লেনদেন: {lastTxn}</span>
         </div>
       </div>
 
@@ -51,16 +78,16 @@ export default function ContactCard({ contact, isSelected, onClick }) {
           <div
             className={`text-[15px] font-semibold leading-none mb-1 ${amtColor}`}
           >
-            {contact.due !== 0 ? `৳${absDue}` : "—"}
+            {dueAmount !== 0 ? `৳ ${absDue}` : "—"}
           </div>
         </div>
-        {contact.overdue ? (
+        {isOverdue ? (
           <Badge className="bg-[#fde8e8] text-[#c0392b] hover:bg-[#fde8e8] text-[10px] px-2 py-0 h-5">
-            {contact.dueDays} দিন অতিবাহিত
+            {dueDays} দিন অতিবাহিত
           </Badge>
-        ) : contact.due !== 0 ? (
+        ) : dueAmount !== 0 ? (
           <Badge className="bg-[#faeeda] text-[#854f0b] hover:bg-[#faeeda] text-[10px] px-2 py-0 h-5">
-            {contact.dueDays} দিন
+            {dueDays > 0 ? `${dueDays} দিন` : "চলমান"}
           </Badge>
         ) : (
           <Badge className="bg-[#e8f5ee] text-[#1a7a4a] hover:bg-[#e8f5ee] text-[10px] px-2 py-0 h-5">

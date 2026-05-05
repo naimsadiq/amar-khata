@@ -8,27 +8,42 @@ import {
 } from "@/components/ui/select";
 import { Search } from "lucide-react";
 
-export default function FilterBar() {
+export default function FilterBar({
+  search,
+  setSearch,
+  category,
+  setCategory,
+  stockStatus,
+  setStockStatus,
+  categories,
+}) {
   return (
     <div className="flex flex-col md:flex-row gap-3 mb-6">
       <div className="relative w-full md:w-[300px]">
         <Search className="absolute left-3 top-2.5 h-4 w-4 text-slate-400" />
-        <Input placeholder="পণ্যের নাম খোঁজুন..." className="pl-9 bg-white" />
+        <Input
+          placeholder="পণ্যের নাম খোঁজুন..."
+          className="pl-9 bg-white"
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+        />
       </div>
 
-      <Select defaultValue="all-cat">
+      <Select value={category} onValueChange={setCategory}>
         <SelectTrigger className="w-full md:w-[180px] bg-white">
           <SelectValue placeholder="ক্যাটাগরি" />
         </SelectTrigger>
         <SelectContent>
           <SelectItem value="all-cat">সব ক্যাটাগরি</SelectItem>
-          <SelectItem value="rice">চাল/ডাল</SelectItem>
-          <SelectItem value="oil">তেল</SelectItem>
-          <SelectItem value="spice">মশলা</SelectItem>
+          {categories.map((cat, idx) => (
+            <SelectItem key={idx} value={cat}>
+              {cat}
+            </SelectItem>
+          ))}
         </SelectContent>
       </Select>
 
-      <Select defaultValue="all-stock">
+      <Select value={stockStatus} onValueChange={setStockStatus}>
         <SelectTrigger className="w-full md:w-[180px] bg-white">
           <SelectValue placeholder="স্টক অবস্থা" />
         </SelectTrigger>

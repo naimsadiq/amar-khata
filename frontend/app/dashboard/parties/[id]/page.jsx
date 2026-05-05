@@ -1,42 +1,44 @@
 // app/parties/[id]/page.jsx
 
 "use client";
-import React, { useState, useEffect } from "react";
+import React from "react";
 import { useRouter } from "next/navigation";
-import { ArrowLeft } from "lucide-react";
+import { useQuery } from "@tanstack/react-query"; // TanStack Query ইম্পোর্ট
+import { ArrowLeft, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import ContactDetail from "../../components/parties/ContactDetail";
+import api from "@/lib/axiosInstance";
 
 export default function PartyDetailPage({ params }) {
   const router = useRouter();
   const { id } = React.use(params);
-  const [contact, setContact] = useState(null);
-  const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    if (id) {
-      // API রেডি হলে fetch(`/api/parties/${id}`) ব্যবহার করবেন
-      fetch("/data/contacts.json")
-        .then((res) => res.json())
-        .then((data) => {
-          const foundContact = data.find((c) => c.id === id);
-          setContact(foundContact);
-        })
-        .finally(() => setLoading(false));
-    }
-  }, [id]);
+  // TanStack Query দিয়ে সিগেল ডাটা ফেচিং
+  const {
+    data: contact,
+    isLoading,
+    isError,
+  } = useQuery({
+    queryKey: ["party", id],
+    queryFn: async () => {
+      // আপনার API এন্ডপয়েন্ট অনুযায়ী URL ঠিক করে নিন
+      const res = await api.get(`http://localhost:5000/api/parties/${id}`);
+      return res.data;
+    },
+    enabled: !!id, // ID না থাকলে Query রান করবে না
+  });
 
-  if (loading) {
+  if (isLoading) {
     return (
-      <div className="flex items-center justify-center h-screen text-gray-500 font-['Hind_Siliguri']">
-        লোড হচ্ছে...
+      <div className="flex items-center justify-center h-screen bg-[#f5f4f0] font-['Hind_Siliguri']">
+        <Loader2 className="animate-spin text-[#1a7a4a] h-8 w-8" />
       </div>
     );
   }
 
-  if (!contact) {
+  if (isError || !contact) {
     return (
-      <div className="flex items-center justify-center h-screen text-red-500 font-['Hind_Siliguri']">
+      <div className="flex items-center justify-center h-screen bg-[#f5f4f0] text-red-500 font-['Hind_Siliguri']">
         দুঃখিত, এই গ্রাহক বা সাপ্লায়ারকে খুঁজে পাওয়া যায়নি।
       </div>
     );
