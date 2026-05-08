@@ -2,10 +2,10 @@
 
 import { useMemo } from "react";
 
-export default function SummaryGrid({ contacts = [] }) {
+export default function SummaryGrid({ partiesData = [] }) {
   // useMemo ব্যবহার করে ক্যালকুলেশনগুলো অপ্টিমাইজ করা হয়েছে
   const summary = useMemo(() => {
-    return contacts.reduce(
+    return partiesData.reduce(
       (acc, contact) => {
         const dueAmount = contact.due ?? contact.dueBalance ?? 0;
 
@@ -34,7 +34,7 @@ export default function SummaryGrid({ contacts = [] }) {
         dueSuppliersCount: 0, 
       },
     );
-  }, [contacts]); // contacts পরিবর্তন হলেই কেবল এই ক্যালকুলেশন আবার হবে
+  }, [partiesData]); // partiesData পরিবর্তন হলেই কেবল এই ক্যালকুলেশন আবার হবে
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">

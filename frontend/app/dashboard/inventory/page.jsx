@@ -9,9 +9,11 @@ import FilterBar from "../components/inventory/FilterBar";
 import ProductTable from "../components/inventory/ProductTable";
 import AddProductModal from "../components/inventory/AddProductModal";
 import { Skeleton } from "@/components/ui/skeleton";
+import PurchaseModal from "../components/inventory/PurchaseModal";
 
 export default function InventoryPage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isPurchaseModalOpen, setIsPurchaseModalOpen] = useState(false);
 
   // ফিল্টারের জন্য State
   const [search, setSearch] = useState("");
@@ -45,22 +47,33 @@ export default function InventoryPage() {
 
   // ডাইনামিক ফিল্টারিং লজিক
   const filteredProducts = useMemo(() => {
-    return products.filter((p) => {
-      // Name Search
-      const matchSearch = p.name?.toLowerCase().includes(search.toLowerCase());
+    return products
+      .filter((p) => {
+        // Name Search
+        const matchSearch = p.name
+          ?.toLowerCase()
+          .includes((search || "").trim().toLowerCase());
 
-      // Category Filter
-      const matchCat = category === "all-cat" || p.category === category;
+        // Category Filter
+        const matchCat = category === "all-cat" || p.category === category;
 
-      // Stock Status Filter
-      let pStatus = "normal";
-      if (p.stockQuantity === 0) pStatus = "out";
-      else if (p.stockQuantity <= p.lowStockAlert) pStatus = "low";
+        // Stock Status Filter
+        let pStatus = "normal";
+        if (p.stockQuantity === 0) pStatus = "out";
+        else if (p.stockQuantity <= p.lowStockAlert) pStatus = "low";
 
-      const matchStock = stockStatus === "all-stock" || pStatus === stockStatus;
+        const matchStock =
+          stockStatus === "all-stock" || pStatus === stockStatus;
 
-      return matchSearch && matchCat && matchStock;
-    });
+        return matchSearch && matchCat && matchStock;
+      })
+      .sort((a, b) => {
+        // updatedAt না থাকলে createdAt ব্যবহার করবে, সেটাও না থাকলে 0 ধরবে
+        const dateA = new Date(a.updatedAt || a.createdAt || 0);
+        const dateB = new Date(b.updatedAt || b.createdAt || 0);
+
+        return dateB - dateA; // Descending order (নতুন এবং আপডেট হওয়া ডাটা উপরে)
+      });
   }, [products, search, category, stockStatus]);
 
   // ডাইনামিক ক্যাটাগরি লিস্ট (ফিল্টার ড্রপডাউনের জন্য)
@@ -71,6 +84,7 @@ export default function InventoryPage() {
       <InventoryHeader
         totalProducts={summary.totalProducts.toLocaleString("en-IN")}
         onAddClick={() => setIsModalOpen(true)}
+        onPurchaseClick={() => setIsPurchaseModalOpen(true)}
       />
 
       {isLoading ? (
@@ -112,6 +126,11 @@ export default function InventoryPage() {
       <AddProductModal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
+      />
+
+      <PurchaseModal
+        isOpen={isPurchaseModalOpen}
+        onClose={() => setIsPurchaseModalOpen(false)}
       />
     </div>
   );

@@ -288,6 +288,7 @@ async function run() {
         const user = req.user;
         const nuwParty = {
           ...party,
+          currentDue: party.openingBalance,
           userEmail: user.email,
           userPhone: user.phone,
           businessId: user.businessId,
@@ -365,7 +366,8 @@ async function run() {
           unit: product.unit,
           buyPrice: Number(product.buyPrice) || 0,
           sellPrice: Number(product.sellPrice) || 0,
-          stockQuantity: Number(product.stockQuantity) || 0,
+          openingStock: Number(product.openingStock) || 0,
+          stockQuantity: Number(product.openingStock) || 0,
           lowStockAlert: Number(product.lowStockAlert) || 5,
 
           // ইউজারের ইনফরমেশন (Multi-tenant এর জন্য)
@@ -409,6 +411,202 @@ async function run() {
         res.status(200).send(products);
       } catch (error) {
         console.error("❌ Error fetching products:", error);
+        res.status(500).send({ message: "Server error", error: error.message });
+      }
+    });
+
+    app.post("/api/purchases", authMiddleware, async (req, res) => {
+      try {
+        const data = req.body;
+        const user = req.user;
+
+        // ১. একটি রেন্ডম বা সিরিয়াল ইনভয়েস নম্বর তৈরি করা
+        const invoiceNo = `PUR-${Date.now().toString().slice(-6)}`;
+
+        // ২. মালের লিস্টকে ডাটাবেজে সেভ করার জন্য ফরম্যাট করা (সব নাম্বার নিশ্চিত করা)
+        const formattedItems = data.items.map((item) => ({
+          productId: new ObjectId(item.productId),
+          quantity: Number(item.quantity) || 0,
+          price: Number(item.buyPriceAtPurchase) || 0,
+          totalLineAmount: Number(item.totalLineAmount) || 0,
+        }));
+
+        // ৩. নতুন Purchase ট্রানজেকশন অবজেক্ট তৈরি
+        const newPurchase = {
+          type: "purchase", // লেনদেনের ধরন: ক্রয়
+          invoiceNo: invoiceNo,
+          partyId: new ObjectId(data.supplierId), // সাপ্লায়ারের আইডি
+          date: new Date(data.purchaseDate || Date.now()),
+
+          // হিসাব ও আইটেম
+          items: formattedItems,
+          subTotal: Number(data.subTotal) || 0,
+          discount: Number(data.discount) || 0,
+          grandTotal: Number(data.grandTotal) || 0,
+          paidAmount: Number(data.paidAmount) || 0,
+          dueAmount: Number(data.dueAmount) || 0,
+
+          // ইউজারের ইনফরমেশন (Multi-tenant এর জন্য)
+          userEmail: user.email,
+          userPhone: user.phone,
+          businessId: user.businessId,
+          businessName: user.businessName,
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        };
+
+        // console.log("Received purchase data:", newPurchase);
+
+        // ৪. transactionsCollection এ ডাটা সেভ করা (একই কালেকশনে পরে সেলসও সেভ করবেন)
+        const result = await transactionsCollection.insertOne(newPurchase);
+
+        // ৫. সাপ্লায়ারের বকেয়া (Due Balance) আপডেট করা
+        // যদি বাকি থাকে, তবে আগের dueBalance এর সাথে বর্তমান dueAmount যোগ ($inc) হবে
+        if (newPurchase.dueAmount > 0) {
+          await partiesCollection.updateOne(
+            { _id: new ObjectId(data.supplierId) },
+            {
+              $inc: { dueBalance: newPurchase.dueAmount },
+              $set: { updatedAt: new Date() },
+            },
+          );
+        }
+
+        // ৬. প্রোডাক্টের স্টক এবং মাস্টার ডাটা (নতুন কেনা/বেচা দাম) আপডেট করা
+        for (const item of data.items) {
+          await productsCollection.updateOne(
+            { _id: new ObjectId(item.productId) },
+            {
+              $inc: { stockQuantity: Number(item.quantity) || 0 }, // স্টকের সাথে নতুন পরিমাণ যোগ
+              $set: {
+                buyPrice: Number(item.buyPriceAtPurchase) || 0, // নতুন কেনা দাম সেট
+                sellPrice: Number(data.updateMasterData?.newSellPrice) || 0, // নতুন বিক্রয় দাম সেট
+                unit: data.updateMasterData?.unit || "পিস",
+                updatedAt: new Date(),
+              },
+            },
+          );
+        }
+
+        res.status(201).send({
+          message: "Purchase completed and stock updated successfully",
+          purchaseId: result.insertedId,
+        });
+      } catch (error) {
+        console.error("❌ Error adding purchase:", error);
+        res.status(500).send({ message: "Server error", error: error.message });
+      }
+    });
+
+    // ==========================================
+    // Sales (বিক্রয়) API
+    // ==========================================
+    app.post("/api/sales", authMiddleware, async (req, res) => {
+      try {
+        const data = req.body;
+        const user = req.user;
+
+        // ১. ইনভয়েস নম্বর (ফ্রন্টএন্ড থেকে না আসলে নতুন তৈরি করবে)
+        const invoiceNo =
+          data.invoiceNo || `INV-${Date.now().toString().slice(-6)}`;
+
+        // ২. মালের লিস্ট ফরম্যাট করা
+        const formattedItems = data.items.map((item) => ({
+          productId: new ObjectId(item.productId),
+          name: item.name,
+          quantity: Number(item.quantity) || 0,
+          price: Number(item.price) || 0,
+          totalLineAmount: Number(item.totalLineAmount) || 0,
+        }));
+
+        // ৩. নতুন Sale ট্রানজেকশন অবজেক্ট তৈরি
+        const newSale = {
+          type: "sale", // লেনদেনের ধরন: বিক্রয়
+          invoiceNo: invoiceNo,
+          partyId: data.partyId ? new ObjectId(data.partyId) : null, // কাস্টমারের আইডি
+          date: new Date(),
+
+          // হিসাব ও আইটেম
+          items: formattedItems,
+          subTotal: Number(data.subTotal) || 0,
+          discount: Number(data.discount) || 0,
+          grandTotal: Number(data.grandTotal) || 0,
+          paidAmount: Number(data.paidAmount) || 0,
+          dueAmount: Number(data.dueAmount) || 0,
+
+          // ইউজারের ইনফরমেশন
+          userEmail: user.email,
+          userPhone: user.phone,
+          businessId: user.businessId,
+          businessName: user.businessName,
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        };
+
+        // console.log("Received sale data:", newSale);
+
+        // ৪. transactionsCollection এ ডাটা সেভ করা
+        const result = await transactionsCollection.insertOne(newSale);
+
+        // ৫. কাস্টমারের বকেয়া আপডেট করা (যদি বাকিতে বিক্রি হয়)
+        if (newSale.dueAmount > 0 && newSale.partyId) {
+          await partiesCollection.updateOne(
+            { _id: newSale.partyId },
+            {
+              $inc: { dueBalance: newSale.dueAmount },
+              $set: { updatedAt: new Date() },
+            },
+          );
+        }
+
+        // ৬. প্রোডাক্টের স্টক আপডেট করা (বিক্রি হলে স্টক মাইনাস হবে)
+        for (const item of formattedItems) {
+          await productsCollection.updateOne(
+            { _id: item.productId },
+            {
+              $inc: { stockQuantity: -Math.abs(item.quantity) }, // স্টকের পরিমাণ কমানো হচ্ছে (-)
+              $set: { updatedAt: new Date() },
+            },
+          );
+        }
+
+        res.status(201).send({
+          message: "Sale completed successfully",
+          saleId: result.insertedId,
+        });
+      } catch (error) {
+        console.error("❌ Error adding sale:", error);
+        res.status(500).send({ message: "Server error", error: error.message });
+      }
+    });
+
+    // Get Transactions by Party ID API
+    // ==========================================
+    app.get("/api/transactions/:partyId", authMiddleware, async (req, res) => {
+      try {
+        const { partyId } = req.params;
+        const user = req.user;
+
+        // Party ID ভ্যালিড কিনা চেক করা
+        if (!ObjectId.isValid(partyId)) {
+          return res.status(400).send({ message: "Invalid Party ID" });
+        }
+
+        // ইউজারের নিজের ডাটা এবং নির্দিষ্ট partyId এর ডাটা ফিল্টার করা
+        const query = {
+          partyId: new ObjectId(partyId),
+          businessId: user.businessId, // মাল্টি-ট্যানেন্ট সিকিউরিটি
+        };
+
+        // লেনদেনের লিস্ট নিয়ে আসা (নতুন তারিখের ডাটা আগে দেখাবে - descending order)
+        const transactions = await transactionsCollection
+          .find(query)
+          .sort({ date: -1 })
+          .toArray();
+
+        res.status(200).send(transactions);
+      } catch (error) {
+        console.error("❌ Error fetching transactions:", error);
         res.status(500).send({ message: "Server error", error: error.message });
       }
     });

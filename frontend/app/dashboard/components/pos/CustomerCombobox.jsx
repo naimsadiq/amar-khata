@@ -24,6 +24,7 @@ export function CustomerCombobox({
   customers,
   selectedCustomer,
   onSelectCustomer,
+  setIsModalOpen,
 }) {
   const [open, setOpen] = React.useState(false);
 
@@ -73,11 +74,8 @@ export function CustomerCombobox({
               ))}
             </CommandGroup>
             <CommandSeparator />
-            <CommandGroup>
-              <CommandItem
-                onSelect={() => alert("নতুন গ্রাহক যোগ করার মডাল খুলবে!")}
-                className="text-blue-600 cursor-pointer"
-              >
+            <CommandGroup onClick={() => setIsModalOpen(true)}>
+              <CommandItem className="text-blue-600 cursor-pointer">
                 <PlusCircle className="mr-2 h-4 w-4" />
                 নতুন গ্রাহক যোগ করুন
               </CommandItem>

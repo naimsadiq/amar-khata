@@ -1,8 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { Plus, ShoppingBag } from "lucide-react";
 
-export default function InventoryHeader({ totalProducts, onAddClick }) {
-  // onAddClick প্রপস যোগ করা হয়েছে
+export default function InventoryHeader({ totalProducts, onAddClick, onPurchaseClick }) {
   return (
     <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
       <div className="flex items-center gap-2">
@@ -15,13 +14,19 @@ export default function InventoryHeader({ totalProducts, onAddClick }) {
       </div>
       <div className="flex items-center gap-3 w-full sm:w-auto">
         <Button
-          onClick={onAddClick} // ক্লিক ইভেন্ট যোগ করা হয়েছে
+          onClick={onAddClick} 
           className="w-full sm:w-auto bg-[#2ecc71] hover:bg-[#27ae60] text-white gap-2"
         >
           <Plus size={16} /> নতুন পণ্য যোগ
         </Button>
-        <Button variant="outline" className="w-full sm:w-auto gap-2">
-          মাল কিনলাম
+        
+        {/* মাল কিনলাম বাটনে onClick ইভেন্ট যুক্ত করা হয়েছে */}
+        <Button 
+          variant="outline" 
+          onClick={onPurchaseClick} 
+          className="w-full sm:w-auto gap-2 border-blue-500 text-blue-600 hover:bg-blue-50"
+        >
+          <ShoppingBag size={16} /> মাল কিনলাম
         </Button>
       </div>
     </div>

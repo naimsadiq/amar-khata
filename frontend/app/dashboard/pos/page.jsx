@@ -8,17 +8,19 @@ import PosHeader from "../components/pos/PosHeader";
 import ProductList from "../components/pos/ProductList";
 import CartSidebar from "../components/pos/CartSidebar";
 import { Loader2 } from "lucide-react";
+import AddModal from "../components/parties/AddModal";
 
 export default function PosPage() {
   const queryClient = useQueryClient();
   const [cart, setCart] = useState([]);
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
-  // ডাইনামিক বিল নাম্বার (Timestamp ভিত্তিক)
+  // ডাইনামিক বিল নাম্বার
   const [billNo, setBillNo] = useState(
     `INV-${Date.now().toString().slice(-6)}`,
   );
 
-  // ১. ইনভেন্টরি থেকে প্রোডাক্ট ফেচ করা
+  // ১. ইনভেন্টরি ফেচ করা
   const { data: products = [], isLoading: loadingProducts } = useQuery({
     queryKey: ["inventory"],
     queryFn: async () => {
@@ -27,12 +29,12 @@ export default function PosPage() {
     },
   });
 
-  // ২. পার্টি থেকে শুধু গ্রাহকদের (Customer) ফেচ করা
+  // ২. কাস্টমার ফেচ করা
   const { data: customers = [], isLoading: loadingCustomers } = useQuery({
     queryKey: ["parties"],
     queryFn: async () => {
       const res = await api.get("/api/parties");
-      return res.data.filter((p) => p.type === "customer"); // শুধু কাস্টমার
+      return res.data.filter((p) => p.type === "customer");
     },
   });
 
@@ -41,7 +43,6 @@ export default function PosPage() {
     setCart((prevCart) => {
       const exists = prevCart.find((item) => item._id === product._id);
       if (exists) {
-        // স্টকের চেয়ে বেশি অ্যাড করা যাবে না
         if (exists.qty >= product.stockQuantity) {
           Swal.fire({
             icon: "warning",
@@ -63,7 +64,6 @@ export default function PosPage() {
       prevCart.map((item) => {
         if (item._id === id) {
           const newQty = item.qty + delta;
-          // স্টক লিমিট চেক
           if (delta > 0 && newQty > item.stockQuantity) {
             Swal.fire({
               icon: "warning",
@@ -84,10 +84,10 @@ export default function PosPage() {
   const removeItem = (id) =>
     setCart((prevCart) => prevCart.filter((item) => item._id !== id));
 
-  // ৩. ইনভয়েস সাবমিট করার Mutation
+  // ৩. ইনভয়েস সাবমিট করার Mutation (Sales API তে হিট করবে)
   const mutation = useMutation({
     mutationFn: async (invoiceData) => {
-      const res = await api.post("/api/invoices", invoiceData);
+      const res = await api.post("/api/sales", invoiceData); // পরিবর্তন করা হয়েছে
       return res.data;
     },
     onSuccess: () => {
@@ -96,11 +96,13 @@ export default function PosPage() {
         title: "সফল!",
         text: "বিল সফলভাবে তৈরি হয়েছে।",
       });
-      setCart([]); // কার্ট ক্লিয়ার
-      setBillNo(`INV-${Date.now().toString().slice(-6)}`); // নতুন বিল নাম্বার
-      queryClient.invalidateQueries({ queryKey: ["inventory"] }); // স্টক আপডেট দেখার জন্য
-      queryClient.invalidateQueries({ queryKey: ["parties"] }); // বকেয়া আপডেট দেখার জন্য
-      queryClient.invalidateQueries({ queryKey: ["cashbook"] }); // ক্যাশবুক আপডেট
+      setCart([]);
+      setBillNo(`INV-${Date.now().toString().slice(-6)}`);
+
+      // ডাটা রিফ্রেশ
+      queryClient.invalidateQueries({ queryKey: ["inventory"] });
+      queryClient.invalidateQueries({ queryKey: ["parties"] });
+      queryClient.invalidateQueries({ queryKey: ["transactions"] });
     },
     onError: (error) => {
       Swal.fire({
@@ -111,7 +113,6 @@ export default function PosPage() {
     },
   });
 
-  // চেকআউট হ্যান্ডলার (প্যারেন্ট থেকে কল হবে)
   const handleCheckout = (checkoutData) => {
     if (cart.length === 0) {
       return Swal.fire({
@@ -128,9 +129,9 @@ export default function PosPage() {
         name: c.name,
         price: c.sellPrice,
         quantity: c.qty,
-        total: c.sellPrice * c.qty,
+        totalLineAmount: c.sellPrice * c.qty, // ব্যাকএন্ডের সাথে মিলানো হয়েছে
       })),
-      ...checkoutData, // subTotal, discount, totalAmount, paidAmount, dueAmount, partyId
+      ...checkoutData,
     };
 
     mutation.mutate(payload);
@@ -157,8 +158,10 @@ export default function PosPage() {
           removeItem={removeItem}
           onCheckout={handleCheckout}
           isSubmitting={mutation.isPending}
+          setIsModalOpen={setIsModalOpen}
         />
       </div>
+      <AddModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} />
     </div>
   );
 }

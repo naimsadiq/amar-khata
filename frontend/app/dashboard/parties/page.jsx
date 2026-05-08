@@ -3,15 +3,17 @@
 "use client";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { useQuery } from "@tanstack/react-query"; // TanStack Query ইম্পোর্ট
-import { Search, Filter, Download, Plus, Loader2 } from "lucide-react";
+import { useQuery } from "@tanstack/react-query";
+import { Search, Download, Plus, Loader2 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 
 import AddModal from "../components/parties/AddModal";
 import SummaryGrid from "../components/parties/SummaryGrid";
-import ContactCard from "../components/parties/ContactCard";
+import PartiesCard from "../components/parties/PartiesCard";
 import api from "@/lib/axiosInstance";
+
+// 'tr' from framer-motion অপ্রয়োজনীয়, তাই সরানো হলো
 
 export default function PartiesListPage() {
   const router = useRouter();
@@ -20,46 +22,53 @@ export default function PartiesListPage() {
   const [filter, setFilter] = useState("all");
   const [isModalOpen, setIsModalOpen] = useState(false);
 
-  // TanStack Query দিয়ে ডাটা ফেচিং
+  // TanStack Query দিয়ে parties fetch করা হচ্ছে
   const {
-    data: contacts = [],
+    data: partiesData = [],
     isLoading,
     isError,
   } = useQuery({
     queryKey: ["parties"],
     queryFn: async () => {
-      const res = await api.get("http://localhost:5000/api/parties");
+      // এখানে সরাসরি URL না দিয়ে api instance ব্যবহার করাই ভালো
+      const res = await api.get("/api/parties");
       return res.data;
     },
   });
 
-  // filtering, searching এবং sorting একসাথে করা হচ্ছে এখানে
-  const filteredContacts = contacts
-    .filter((c) => {
-      const dueAmount = c.due ?? c.dueBalance ?? 0;
-      const isOverdue = c.overdue ?? false;
+  // ফিল্টার করা parties এর তালিকা
+  const filterParties = partiesData
+    .filter((p) => {
+      // API ডাটা অনুযায়ী `dueBalance` এবং `openingBalance` ব্যবহার করা হয়েছে
+      const dueAmount = p.dueBalance ?? Number(p.openingBalance) ?? 0;
+      const term = search?.trim().toLowerCase();
 
-      if (activeTab === "customer" && c.type !== "customer") return false;
-      if (activeTab === "supplier" && c.type !== "supplier") return false;
-      if (filter === "due" && dueAmount === 0) return false;
-      if (filter === "overdue" && !isOverdue) return false;
-      if (
-        search &&
-        !c.name?.toLowerCase().includes(search.toLowerCase()) &&
-        !c.phone?.includes(search)
-      )
-        return false;
+      // ট্যাব অনুযায়ী ফিল্টার
+      if (activeTab === "customer" && p.type !== "customer") return false;
+      if (activeTab === "supplier" && p.type !== "supplier") return false;
+
+      // বকেয়া ফিল্টার (যাদের কাছে টাকা পাওনা আছে বা যাদেরকে টাকা দিতে হবে)
+      if (filter === "due" && dueAmount <= 0) return false;
+
+      // সার্চ টার্ম অনুযায়ী ফিল্টার
+      if (term) {
+        const matchName = p.name?.toLowerCase().includes(term);
+        const matchPhone = p.phone?.includes(term);
+        if (!matchName && !matchPhone) return false;
+      }
+
       return true;
     })
     .sort((a, b) => {
-      // createdAt এর ওপর ভিত্তি করে নতুন ডাটা সবার উপরে রাখা (Descending Order)
-      const dateA = a.createdAt ? new Date(a.createdAt) : new Date(0);
-      const dateB = b.createdAt ? new Date(b.createdAt) : new Date(0);
-      return dateB - dateA;
-    });
+      // createdAt এর পরিবর্তে updatedAt ব্যবহার করা হলো
+      const dateA = new Date(a.updatedAt || a.createdAt || 0);
+      const dateB = new Date(b.updatedAt || b.createdAt || 0);
 
-  const handleCardClick = (contactId) => {
-    router.push(`/dashboard/parties/${contactId}`);
+      return dateB - dateA; // Descending order (নতুন এবং আপডেট হওয়া ডাটা উপরে)
+    });
+    
+  const handleCardClick = (partiesId) => {
+    router.push(`/dashboard/parties/${partiesId}`);
   };
 
   return (
@@ -92,6 +101,7 @@ export default function PartiesListPage() {
             placeholder="নাম বা ফোন নম্বর..."
             className="pl-9 h-9 border-gray-200 focus-visible:ring-[#1a7a4a] bg-white rounded-lg"
             onChange={(e) => setSearch(e.target.value)}
+            value={search}
           />
         </div>
 
@@ -113,27 +123,25 @@ export default function PartiesListPage() {
         </div>
       </div>
 
-      <SummaryGrid contacts={contacts} />
+      <SummaryGrid partiesData={partiesData} />
 
       {/* Filter Chips */}
       <div className="flex items-center gap-2 flex-wrap text-sm">
-        {["all", "due", "overdue"].map((f) => (
+        {["all", "due"].map((f) => (
           <button
             key={f}
             onClick={() => setFilter(f)}
             className={`px-3 py-1 rounded-full border transition-all ${
               filter === f
-                ? f === "overdue"
-                  ? "bg-[#fde8e8] border-[#c0392b] text-[#c0392b]"
-                  : "bg-[#e8f5ee] border-[#1a7a4a] text-[#0f5234]"
+                ? "bg-[#e8f5ee] border-[#1a7a4a] text-[#0f5234]"
                 : "bg-white border-gray-200 text-gray-600 hover:bg-gray-50"
             }`}
           >
-            {f === "all" ? "সব" : f === "due" ? "বকেয়া আছে" : "মেয়াদোত্তীর্ণ"}
+            {f === "all" ? "সব" : "বকেয়া আছে"}
           </button>
         ))}
         <span className="text-gray-400 text-xs ml-auto">
-          {filteredContacts.length} জন
+          {filterParties.length} জন
         </span>
       </div>
 
@@ -147,12 +155,12 @@ export default function PartiesListPage() {
           <div className="text-center py-10 text-red-500 bg-white rounded-xl border border-red-100">
             ডাটা লোড করতে সমস্যা হয়েছে!
           </div>
-        ) : filteredContacts.length > 0 ? (
-          filteredContacts.map((c) => (
-            <ContactCard
-              key={c._id}
-              contact={c}
-              onClick={() => handleCardClick(c._id)}
+        ) : filterParties.length > 0 ? (
+          filterParties.map((p) => (
+            <PartiesCard
+              key={p._id}
+              contact={p}
+              onClick={() => handleCardClick(p._id)}
             />
           ))
         ) : (

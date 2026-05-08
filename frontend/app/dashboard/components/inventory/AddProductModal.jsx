@@ -28,7 +28,7 @@ export default function AddProductModal({ isOpen, onClose }) {
       category: "",
       buyPrice: "",
       sellPrice: "",
-      stockQuantity: "",
+      openingStock: "",
       lowStockAlert: "5", // ডিফল্ট ওয়ার্নিং ৫ পিস
       unit: "পিস", // ডিফল্ট একক
     },
@@ -72,7 +72,7 @@ export default function AddProductModal({ isOpen, onClose }) {
       ...data,
       buyPrice: Number(data.buyPrice) || 0,
       sellPrice: Number(data.sellPrice) || 0,
-      stockQuantity: Number(data.stockQuantity) || 0,
+      openingStock: Number(data.openingStock) || 0,
       lowStockAlert: Number(data.lowStockAlert) || 5,
     };
 
@@ -197,7 +197,7 @@ export default function AddProductModal({ isOpen, onClose }) {
                 </label>
                 <Input
                   type="number"
-                  {...register("stockQuantity")}
+                  {...register("openingStock")}
                   placeholder="0"
                   className="h-10 rounded-lg text-sm"
                 />

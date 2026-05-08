@@ -8,7 +8,7 @@ import {
   BarChart2,
 } from "lucide-react";
 
-export default function QuickActions() {
+export default function QuickActions({ setIsModalOpen }) {
   return (
     <div className="flex flex-wrap gap-2">
       <Button>
@@ -23,7 +23,10 @@ export default function QuickActions() {
       <Button variant="secondary">
         <ShoppingCart className="mr-2 h-4 w-4" /> মাল কিনলাম
       </Button>
-      <Button className="bg-amber-500 hover:bg-amber-600">
+      <Button
+        onClick={() => setIsModalOpen(true)}
+        className="bg-amber-500 hover:bg-amber-600"
+      >
         <UserPlus className="mr-2 h-4 w-4" /> নতুন গ্রাহক
       </Button>
       <Button className="bg-blue-600 hover:bg-blue-700">

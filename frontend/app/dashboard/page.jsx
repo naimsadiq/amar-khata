@@ -1,3 +1,4 @@
+"use client";
 import data from "@/public/api/dashboard-data.json";
 import AlertRow from "./components/overview/AlertRow";
 import MonthlyProfit from "./components/overview/MonthlyProfit";
@@ -6,11 +7,14 @@ import RecentTransactions from "./components/overview/RecentTransactions";
 import StatCards from "./components/overview/StatCards";
 import TopProducts from "./components/overview/TopProducts";
 import WeeklySalesChart from "./components/overview/WeeklySalesChart";
+import AddModal from "./components/parties/AddModal";
+import { useState } from "react";
 
 export default function OverviewPage() {
+  const [isModalOpen, setIsModalOpen] = useState(false);
   return (
     <div className="flex-1 min-w-0 space-y-4 p-4 md:p-8 pt-6">
-      <QuickActions />
+      <QuickActions setIsModalOpen={setIsModalOpen} />
 
       <div className="mt-6 space-y-4">
         <StatCards stats={data.stats} />
@@ -35,6 +39,8 @@ export default function OverviewPage() {
           <MonthlyProfit profit={data.monthlyProfit} />
         </div>
       </div>
+
+      <AddModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} />
     </div>
   );
 }
