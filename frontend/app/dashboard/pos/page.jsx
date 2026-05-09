@@ -87,7 +87,8 @@ export default function PosPage() {
   // ৩. ইনভয়েস সাবমিট করার Mutation (Sales API তে হিট করবে)
   const mutation = useMutation({
     mutationFn: async (invoiceData) => {
-      const res = await api.post("/api/sales", invoiceData); // পরিবর্তন করা হয়েছে
+      const res = await api.post("/api/sales", invoiceData);
+      console.log(invoiceData);
       return res.data;
     },
     onSuccess: () => {

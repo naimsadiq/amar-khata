@@ -44,7 +44,7 @@ async function run() {
     const partiesCollection = db.collection("parties");
     const productsCollection = db.collection("products");
     const transactionsCollection = db.collection("transactions");
-    const invoicesCollection = db.collection("invoices");
+    const cashbookCollection = db.collection("cashbook");
 
     //login check
     app.get("/api/auth/me", async (req, res) => {
@@ -419,11 +419,12 @@ async function run() {
       try {
         const data = req.body;
         const user = req.user;
+        const supplierObjectId = new ObjectId(data.supplierId);
 
         // ১. একটি রেন্ডম বা সিরিয়াল ইনভয়েস নম্বর তৈরি করা
         const invoiceNo = `PUR-${Date.now().toString().slice(-6)}`;
 
-        // ২. মালের লিস্টকে ডাটাবেজে সেভ করার জন্য ফরম্যাট করা (সব নাম্বার নিশ্চিত করা)
+        // ২. মালের লিস্টকে ডাটাবেজে সেভ করার জন্য ফরম্যাট করা
         const formattedItems = data.items.map((item) => ({
           productId: new ObjectId(item.productId),
           quantity: Number(item.quantity) || 0,
@@ -433,20 +434,16 @@ async function run() {
 
         // ৩. নতুন Purchase ট্রানজেকশন অবজেক্ট তৈরি
         const newPurchase = {
-          type: "purchase", // লেনদেনের ধরন: ক্রয়
+          type: "purchase",
           invoiceNo: invoiceNo,
-          partyId: new ObjectId(data.supplierId), // সাপ্লায়ারের আইডি
+          partyId: supplierObjectId,
           date: new Date(data.purchaseDate || Date.now()),
-
-          // হিসাব ও আইটেম
           items: formattedItems,
           subTotal: Number(data.subTotal) || 0,
           discount: Number(data.discount) || 0,
           grandTotal: Number(data.grandTotal) || 0,
           paidAmount: Number(data.paidAmount) || 0,
           dueAmount: Number(data.dueAmount) || 0,
-
-          // ইউজারের ইনফরমেশন (Multi-tenant এর জন্য)
           userEmail: user.email,
           userPhone: user.phone,
           businessId: user.businessId,
@@ -455,32 +452,60 @@ async function run() {
           updatedAt: new Date(),
         };
 
-        // console.log("Received purchase data:", newPurchase);
-
-        // ৪. transactionsCollection এ ডাটা সেভ করা (একই কালেকশনে পরে সেলসও সেভ করবেন)
+        // ৪. transactionsCollection এ ডাটা সেভ করা
         const result = await transactionsCollection.insertOne(newPurchase);
 
         // ৫. সাপ্লায়ারের বকেয়া (Due Balance) আপডেট করা
-        // যদি বাকি থাকে, তবে আগের dueBalance এর সাথে বর্তমান dueAmount যোগ ($inc) হবে
         if (newPurchase.dueAmount > 0) {
           await partiesCollection.updateOne(
-            { _id: new ObjectId(data.supplierId) },
+            { _id: supplierObjectId },
             {
-              $inc: { dueBalance: newPurchase.dueAmount },
+              $inc: { currentDue: newPurchase.dueAmount },
               $set: { updatedAt: new Date() },
             },
           );
         }
 
-        // ৬. প্রোডাক্টের স্টক এবং মাস্টার ডাটা (নতুন কেনা/বেচা দাম) আপডেট করা
+        // নতুন: ক্যাসবুক আপডেট (যদি নগদ টাকা দেওয়া হয়)
+        if (newPurchase.paidAmount > 0) {
+          // সাপ্লায়ারের নাম ও ফোন খুঁজে নেওয়া
+          let partyName = "অজ্ঞাত সাপ্লায়ার";
+          let partyPhone = "";
+
+          const supplierInfo = await partiesCollection.findOne({
+            _id: supplierObjectId,
+          });
+          if (supplierInfo) {
+            partyName = supplierInfo.name;
+            partyPhone = supplierInfo.phone;
+          }
+
+          await cashbookCollection.insertOne({
+            transactionType: "OUT",
+            category: "Supplier_Payment",
+            partyId: supplierObjectId,
+            partyName: partyName, // আপডেট করা হলো
+            partyPhone: partyPhone, // আপডেট করা হলো
+            partyModel: "Supplier",
+            amount: newPurchase.paidAmount,
+            date: newPurchase.date,
+            referenceNo: newPurchase.invoiceNo,
+            note: `ক্রয় বাবদ পেমেন্ট (ইনভয়েস: ${newPurchase.invoiceNo})`,
+            userEmail: user.email,
+            businessId: user.businessId,
+            createdAt: new Date(),
+          });
+        }
+
+        // ৬. প্রোডাক্টের স্টক এবং মাস্টার ডাটা আপডেট করা
         for (const item of data.items) {
           await productsCollection.updateOne(
             { _id: new ObjectId(item.productId) },
             {
-              $inc: { stockQuantity: Number(item.quantity) || 0 }, // স্টকের সাথে নতুন পরিমাণ যোগ
+              $inc: { stockQuantity: Number(item.quantity) || 0 },
               $set: {
-                buyPrice: Number(item.buyPriceAtPurchase) || 0, // নতুন কেনা দাম সেট
-                sellPrice: Number(data.updateMasterData?.newSellPrice) || 0, // নতুন বিক্রয় দাম সেট
+                buyPrice: Number(item.buyPriceAtPurchase) || 0,
+                sellPrice: Number(data.updateMasterData?.newSellPrice) || 0,
                 unit: data.updateMasterData?.unit || "পিস",
                 updatedAt: new Date(),
               },
@@ -506,7 +531,7 @@ async function run() {
         const data = req.body;
         const user = req.user;
 
-        // ১. ইনভয়েস নম্বর (ফ্রন্টএন্ড থেকে না আসলে নতুন তৈরি করবে)
+        // ১. ইনভয়েস নম্বর
         const invoiceNo =
           data.invoiceNo || `INV-${Date.now().toString().slice(-6)}`;
 
@@ -521,20 +546,16 @@ async function run() {
 
         // ৩. নতুন Sale ট্রানজেকশন অবজেক্ট তৈরি
         const newSale = {
-          type: "sale", // লেনদেনের ধরন: বিক্রয়
+          type: "sale",
           invoiceNo: invoiceNo,
-          partyId: data.partyId ? new ObjectId(data.partyId) : null, // কাস্টমারের আইডি
+          partyId: data.partyId ? new ObjectId(data.partyId) : null,
           date: new Date(),
-
-          // হিসাব ও আইটেম
           items: formattedItems,
           subTotal: Number(data.subTotal) || 0,
           discount: Number(data.discount) || 0,
           grandTotal: Number(data.grandTotal) || 0,
           paidAmount: Number(data.paidAmount) || 0,
           dueAmount: Number(data.dueAmount) || 0,
-
-          // ইউজারের ইনফরমেশন
           userEmail: user.email,
           userPhone: user.phone,
           businessId: user.businessId,
@@ -542,8 +563,6 @@ async function run() {
           createdAt: new Date(),
           updatedAt: new Date(),
         };
-
-        // console.log("Received sale data:", newSale);
 
         // ৪. transactionsCollection এ ডাটা সেভ করা
         const result = await transactionsCollection.insertOne(newSale);
@@ -553,18 +572,51 @@ async function run() {
           await partiesCollection.updateOne(
             { _id: newSale.partyId },
             {
-              $inc: { dueBalance: newSale.dueAmount },
+              $inc: { currentDue: newSale.dueAmount },
               $set: { updatedAt: new Date() },
             },
           );
         }
 
-        // ৬. প্রোডাক্টের স্টক আপডেট করা (বিক্রি হলে স্টক মাইনাস হবে)
+        // ৬. ক্যাসবুক আপডেট (যদি নগদ টাকা পাওয়া যায়)
+        if (newSale.paidAmount > 0) {
+          // কাস্টমারের নাম ও ফোন ডাটাবেস থেকে খুঁজে নেওয়া
+          let partyName = "নগদ বিক্রয়";
+          let partyPhone = "";
+
+          if (newSale.partyId) {
+            const partyInfo = await partiesCollection.findOne({
+              _id: newSale.partyId,
+            });
+            if (partyInfo) {
+              partyName = partyInfo.name;
+              partyPhone = partyInfo.phone;
+            }
+          }
+
+          await cashbookCollection.insertOne({
+            transactionType: "IN",
+            category: "Direct_Sale",
+            partyId: newSale.partyId,
+            partyName: partyName, // ডাটাবেস থেকে পাওয়া নাম
+            partyPhone: partyPhone, // ডাটাবেস থেকে পাওয়া ফোন
+            partyModel: "Customer",
+            amount: newSale.paidAmount,
+            date: newSale.date,
+            referenceNo: newSale.invoiceNo,
+            note: `বিক্রয় বাবদ প্রাপ্তি (ইনভয়েস: ${newSale.invoiceNo})`,
+            userEmail: user.email,
+            businessId: user.businessId,
+            createdAt: new Date(),
+          });
+        }
+
+        // ৭. প্রোডাক্টের স্টক আপডেট করা
         for (const item of formattedItems) {
           await productsCollection.updateOne(
             { _id: item.productId },
             {
-              $inc: { stockQuantity: -Math.abs(item.quantity) }, // স্টকের পরিমাণ কমানো হচ্ছে (-)
+              $inc: { stockQuantity: -Math.abs(item.quantity) },
               $set: { updatedAt: new Date() },
             },
           );
@@ -611,204 +663,95 @@ async function run() {
       }
     });
 
-    // 1. নতুন ক্যাশবুক লেনদেন যোগ করার API (Cash IN/OUT)
-    //=================================================
+    // ==========================================
+    // Cashbook (টাকা গ্রহণ বা প্রদান) API
+    // ==========================================
     app.post("/api/cashbook", authMiddleware, async (req, res) => {
       try {
-        const { date, type, amount, description, note, category, partyId } =
-          req.body;
+        const data = req.body;
         const user = req.user;
 
-        // ১. ডাটাবেসে সেভ করার জন্য নতুন লেনদেন অবজেক্ট তৈরি
-        const newTransaction = {
-          businessId: user.businessId,
+        // ১. নতুন ক্যাসবুক এন্ট্রি তৈরি করা
+        const newCashEntry = {
+          transactionType: data.transactionType, // 'IN' (টাকা পেলাম) বা 'OUT' (টাকা দিলাম)
+          category: data.category,
+          partyId: data.partyId ? new ObjectId(data.partyId) : null,
+          partyModel: data.partyModel, // 'Customer' বা 'Supplier'
+          amount: Number(data.amount) || 0,
+          date: new Date(data.date || Date.now()),
+          referenceNo: data.referenceNo || "",
+          note: data.note || "",
+
+          partyName: data.partyName || null,
+          partyPhone: data.partyPhone || null,
+
+          // ইউজারের ইনফরমেশন
           userEmail: user.email,
-          date: new Date(date || new Date()), // যদি তারিখ না আসে, আজকের তারিখ বসবে
-          type, // ফ্রন্টএন্ড থেকে "IN" অথবা "OUT" আসবে
-          amount: Number(amount) || 0, // স্ট্রিং আসলে নাম্বারে কনভার্ট হবে
-          description,
-          note: note || "", // নোট না থাকলে খালি স্ট্রিং
-          category: category || "General", // ক্যাটাগরি না থাকলে "General"
-          partyId: partyId ? new ObjectId(partyId) : null, // partyId থাকলে उसे ObjectId-তে কনভার্ট করা হবে
+          businessId: user.businessId,
           createdAt: new Date(),
-          updatedAt: new Date(),
         };
 
-        console.log("Saving new transaction:", newTransaction);
+        // ২. ক্যাসবুক কালেকশনে ডাটা সেভ করা
+        const result = await cashbookCollection.insertOne(newCashEntry);
+        // console.log(newCashEntry)
 
-        // ২. `transactionsCollection`-এ নতুন লেনদেনটি সেভ করা
-        // (আপনার ডাটাবেস কালেকশনের নাম অনুযায়ী ভ্যারিয়েবল পরিবর্তন করতে পারেন)
-        await transactionsCollection.insertOne(newTransaction);
+        // ৩. যদি PartyId থাকে, তবে কাস্টমার বা সাপ্লায়ারের বর্তমান বকেয়া আপডেট করা
+        if (data.partyId) {
+          // টাকা পেলে (Cash In) বকেয়া কমবে, টাকা দিলে (Cash Out) বকেয়া বাড়বে
+          // কিন্তু যদি সাপ্লায়ারের ক্ষেত্রে হয়, তবে সাপ্লায়ারকে টাকা দেওয়া মানে বকেয়া কমানো
 
-        // ৩. যদি partyId থাকে, তাহলে `parties` কালেকশনে বকেয়া (Due) আপডেট করা হবে
-        if (partyId) {
-          // লজিক:
-          // টাকা পেলে (IN) কাস্টমারের বকেয়া কমে।
-          // টাকা দিলে (OUT) সাপ্লায়ারের দেনা কমে।
-          // উভয় ক্ষেত্রেই মূল বকেয়া থেকে টাকা বিয়োগ হবে।
-          const dueUpdateAmount = -Math.abs(Number(amount) || 0);
+          let updateValue = 0;
+          if (data.transactionType === "IN") {
+            // সাধারণত কাস্টমার থেকে টাকা পেলে বকেয়া কমে
+            updateValue = -Math.abs(data.amount);
+          } else {
+            // সাপ্লায়ারকে টাকা দিলে বকেয়া কমে, অন্যান্য খরচ হলে বকেয়া বিষয় নয়
+            if (data.category === "Supplier_Payment") {
+              updateValue = -Math.abs(data.amount);
+            } else {
+              // যদি সাপ্লায়ার পেমেন্ট ছাড়া অন্য খরচ হয়, তবে পার্টি আপডেট করার দরকার নেই
+              updateValue = 0;
+            }
+          }
 
-          await partiesCollection.updateOne(
-            { _id: new ObjectId(partyId) },
-            { $inc: { openingBalance: dueUpdateAmount } }, // $inc দিয়ে পারমাণবিক (atomic) ভাবে যোগ/বিয়োগ করা হয়
-          );
+          if (updateValue !== 0) {
+            await partiesCollection.updateOne(
+              { _id: new ObjectId(data.partyId) },
+              {
+                $inc: { currentDue: updateValue },
+                $set: { updatedAt: new Date() },
+              },
+            );
+          }
         }
 
         res.status(201).send({
-          message: "লেনদেন সফলভাবে যোগ করা হয়েছে",
-          transaction: newTransaction,
+          message: "Transaction successful",
+          transactionId: result.insertedId,
         });
       } catch (error) {
-        console.error("❌ Error adding transaction:", error);
+        console.error("❌ Error in Cashbook API:", error);
         res.status(500).send({ message: "Server error", error: error.message });
       }
     });
 
-    // 2. সব লেনদেন এবং সামারি ডাটা পাওয়ার API
-    //===========================================================
+    // ==========================================
+    // GET Cashbook Records API
+    // ==========================================
     app.get("/api/cashbook", authMiddleware, async (req, res) => {
       try {
         const user = req.user;
+        const query = { businessId: user.businessId };
 
-        // ১. শুধুমাত্র বর্তমান ইউজারের/দোকানের সব লেনদেন খুঁজে বের করা
-        // তারিখ অনুযায়ী নতুনগুলো উপরে থাকবে (Descending order)
-        const transactions = await transactionsCollection
-          .find({ businessId: user.businessId })
-          .sort({ date: -1, createdAt: -1 })
+        // ক্যাসবুক রেকর্ডগুলো তারিখ অনুযায়ী সাজানো
+        const records = await cashbookCollection
+          .find(query)
+          .sort({ date: -1 })
           .toArray();
 
-        // ২. সামারি কার্ডের জন্য ক্যালকুলেশন
-        let totalIncome = 0;
-        let totalExpense = 0;
-
-        transactions.forEach((txn) => {
-          if (txn.type === "IN") {
-            totalIncome += txn.amount;
-          } else if (txn.type === "OUT") {
-            totalExpense += txn.amount;
-          }
-        });
-
-        const netBalance = totalIncome - totalExpense;
-
-        // ৩. ফ্রন্টএন্ডে একটি অবজেক্ট পাঠানো যেখানে সামারি এবং লেনদেনের তালিকা দুটোই থাকবে
-        res.status(200).send({
-          summary: {
-            totalIncome,
-            totalExpense,
-            netBalance,
-          },
-          transactions: transactions,
-        });
+        res.status(200).send(records);
       } catch (error) {
         console.error("❌ Error fetching cashbook:", error);
-        res.status(500).send({ message: "Server error", error: error.message });
-      }
-    });
-
-    // 1. POS থেকে নতুন বিল (Invoice) তৈরি করার API
-    //=================================================
-    app.post("/api/invoices", authMiddleware, async (req, res) => {
-      try {
-        const {
-          invoiceNo,
-          items,
-          subTotal,
-          discount,
-          totalAmount,
-          paidAmount,
-          dueAmount,
-          partyId,
-        } = req.body;
-
-        const user = req.user;
-        const now = new Date();
-
-        // কাস্টমার সিলেক্ট না করলে partyId "none" আসতে পারে, সেটা হ্যান্ডেল করা
-        const validPartyId =
-          partyId && partyId !== "none" ? new ObjectId(partyId) : null;
-
-        // ১. Invoices কালেকশনে বিল সেভ করা
-        const newInvoice = {
-          businessId: user.businessId,
-          userEmail: user.email,
-          invoiceNo,
-          date: now,
-          items,
-          subTotal: Number(subTotal),
-          discount: Number(discount),
-          totalAmount: Number(totalAmount),
-          paidAmount: Number(paidAmount),
-          dueAmount: Number(dueAmount),
-          partyId: validPartyId,
-          createdAt: now,
-        };
-
-        // (আপনার ডাটাবেস কালেকশনের নাম invoicesCollection ধরে নিচ্ছি)
-        const invoiceResult = await invoicesCollection.insertOne(newInvoice);
-
-        // ২. Inventory (Products) কালেকশন থেকে বিক্রি হওয়া স্টক কমানো
-        // items অ্যারের প্রতিটা প্রোডাক্টের জন্য লুপ চলবে
-        for (const item of items) {
-          await productsCollection.updateOne(
-            { _id: new ObjectId(item.productId) },
-            { $inc: { stockQuantity: -Number(item.quantity) } }, // $inc দিয়ে মাইনাস করা হচ্ছে
-          );
-        }
-
-        // ৩. Cashbook (Transactions) আপডেট করা (যদি নগদ টাকা দিয়ে থাকে)
-        if (Number(paidAmount) > 0) {
-          const newTransaction = {
-            businessId: user.businessId,
-            userEmail: user.email,
-            date: now,
-            type: "IN", // টাকা পেলাম
-            amount: Number(paidAmount),
-            description: `POS বিল ${invoiceNo} - নগদ বিক্রয়`,
-            note: "POS সেলস",
-            category: "Sales",
-            partyId: validPartyId,
-            invoiceId: invoiceResult.insertedId,
-            createdAt: now,
-          };
-          await transactionsCollection.insertOne(newTransaction);
-        }
-
-        // ৪. Party (Customer) এর বকেয়া আপডেট করা (যদি বাকি থাকে)
-        if (Number(dueAmount) > 0 && validPartyId) {
-          // বকেয়া বিক্রি হলে কাস্টমারের due (বা openingBalance) বেড়ে যাবে
-          await partiesCollection.updateOne(
-            { _id: validPartyId },
-            { $inc: { openingBalance: Number(dueAmount) } }, // dueAmount যোগ হবে
-          );
-        }
-
-        res.status(201).send({
-          message: "বিল সফলভাবে তৈরি হয়েছে এবং স্টক, ক্যাশবুক আপডেট হয়েছে!",
-          invoiceId: invoiceResult.insertedId,
-        });
-      } catch (error) {
-        console.error("❌ Error creating invoice:", error);
-        res.status(500).send({ message: "Server error", error: error.message });
-      }
-    });
-
-    //=================================================
-    // 2. পুরনো সব বিল দেখার API (GET)
-    //=================================================
-    app.get("/api/invoices", authMiddleware, async (req, res) => {
-      try {
-        const user = req.user;
-
-        // বর্তমান দোকানের সব বিল লেটেস্ট থেকে পুরনো অর্ডারে আনবে
-        const invoices = await invoicesCollection
-          .find({ businessId: user.businessId })
-          .sort({ createdAt: -1 })
-          .toArray();
-
-        res.status(200).send(invoices);
-      } catch (error) {
-        console.error("❌ Error fetching invoices:", error);
         res.status(500).send({ message: "Server error", error: error.message });
       }
     });

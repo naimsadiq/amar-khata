@@ -13,7 +13,7 @@ export default function PartiesCard({ contact, isSelected, onClick }) {
 
   // API ডাটার সাথে সামঞ্জস্য রেখে Fallback ভ্যালু সেট করা
   // `dueBalance` এবং `openingBalance` উভয়ই চেক করা হচ্ছে এবং নাম্বার-এ কনভার্ট করা হচ্ছে।
-  const dueAmount = contact.dueBalance ?? Number(contact.openingBalance) ?? 0;
+  const dueAmount = contact.currentDue ?? Number(contact.openingBalance) ?? 0;
   const address = contact.address || "ঠিকানা নেই";
   const phone = contact.phone || "নম্বর নেই";
   // তারিখ ফরম্যাট করা যেতে পারে, তবে আপাতত স্ট্রিং হিসেবেই রাখা হলো

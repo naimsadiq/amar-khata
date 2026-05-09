@@ -5,7 +5,6 @@ import { useQuery } from "@tanstack/react-query";
 import { ArrowLeft, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import ContactDetail from "../../components/parties/ContactDetail";
-import TransactionTable from "../../components/parties/TransactionTable"; // নতুন টেবিল কম্পোনেন্ট
 import api from "@/lib/axiosInstance";
 
 export default function PartyDetailPage({ params }) {
@@ -20,7 +19,7 @@ export default function PartyDetailPage({ params }) {
   } = useQuery({
     queryKey: ["party", id],
     queryFn: async () => {
-      const res = await api.get(`/api/parties/${id}`); // লোকালহোস্ট URL base URL-এ কনফিগার করা থাকলে শুধু পাথ দিন
+      const res = await api.get(`/api/parties/${id}`);
       return res.data;
     },
     enabled: !!id,
@@ -34,7 +33,6 @@ export default function PartyDetailPage({ params }) {
   } = useQuery({
     queryKey: ["transactions", id],
     queryFn: async () => {
-      // নতুন ব্যাকএন্ড API এর পাথ
       const res = await api.get(`/api/transactions/${id}`);
       return res.data;
     },
@@ -80,17 +78,12 @@ export default function PartyDetailPage({ params }) {
           </div>
         </div>
 
-        {/* Contact Detail Profile Component */}
+        {/* Combined Contact Detail & Transaction Table */}
         <ContactDetail
           contact={contact}
-          totalTxns={transactions?.length || 0}
-        />
-
-        {/* Transaction Table Component */}
-        <TransactionTable
           transactions={transactions}
-          isLoading={isTxnLoading}
-          isError={isTxnError}
+          isTxnLoading={isTxnLoading}
+          isTxnError={isTxnError}
         />
       </div>
     </div>

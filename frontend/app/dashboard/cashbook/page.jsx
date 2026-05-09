@@ -5,58 +5,66 @@ import api from "@/lib/axiosInstance";
 import ActionButtons from "../components/cashbook/ActionButtons";
 import SummaryCards from "../components/cashbook/SummaryCards";
 import TransactionTable from "../components/cashbook/TransactionTable";
-import CashbookModal from "../components/cashbook/CashbookModal"; // নতুন মডাল
+import CashbookModal from "../components/cashbook/CashbookModal";
 import { Skeleton } from "@/components/ui/skeleton";
 
 export default function CashbookPage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [transactionType, setTransactionType] = useState("IN"); // "IN" বা "OUT"
+  const [transactionType, setTransactionType] = useState("IN");
 
-  // TanStack Query দিয়ে ডাটা ফেচ
   const { data, isLoading } = useQuery({
     queryKey: ["cashbook"],
     queryFn: async () => {
       const res = await api.get("/api/cashbook");
-      return res.data; // { summary: {...}, transactions: [...] }
+      const transactions = res.data;
+
+      const totalIncome = transactions
+        .filter((t) => t.transactionType === "IN")
+        .reduce((sum, t) => sum + t.amount, 0);
+      const totalExpense = transactions
+        .filter((t) => t.transactionType === "OUT")
+        .reduce((sum, t) => sum + t.amount, 0);
+
+      return {
+        transactions,
+        summary: {
+          totalIncome,
+          totalExpense,
+          netBalance: totalIncome - totalExpense,
+        },
+      };
     },
   });
 
-  // বাটন ক্লিকের হ্যান্ডলার
-  const handleOpenModal = (type) => {
-    setTransactionType(type);
-    setIsModalOpen(true);
-  };
-
   return (
-    <div className="flex flex-col min-h-screen bg-[#f5f7fa] w-full font-['Hind_Siliguri']">
-      <div className="p-4 md:p-6 overflow-y-auto">
-        <ActionButtons
-          onCashIn={() => handleOpenModal("IN")}
-          onCashOut={() => handleOpenModal("OUT")}
-        />
+    <div className="flex flex-col min-h-screen bg-[#f5f7fa] w-full font-['Hind_Siliguri'] p-4 md:p-6">
+      <ActionButtons
+        onCashIn={() => {
+          setTransactionType("IN");
+          setIsModalOpen(true);
+        }}
+        onCashOut={() => {
+          setTransactionType("OUT");
+          setIsModalOpen(true);
+        }}
+      />
 
-        {isLoading ? (
-          // Skeleton Loading Animation
-          <div className="space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-              {[1, 2, 3].map((i) => (
-                <Skeleton
-                  key={i}
-                  className="h-[120px] w-full rounded-xl bg-slate-200"
-                />
-              ))}
-            </div>
-            <Skeleton className="h-[400px] w-full rounded-xl bg-slate-200" />
+      {isLoading ? (
+        <div className="space-y-6 mt-6">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <Skeleton className="h-[120px] rounded-xl" />
+            <Skeleton className="h-[120px] rounded-xl" />
+            <Skeleton className="h-[120px] rounded-xl" />
           </div>
-        ) : (
-          <>
-            <SummaryCards data={data?.summary} />
-            <TransactionTable transactions={data?.transactions || []} />
-          </>
-        )}
-      </div>
+          <Skeleton className="h-[400px] rounded-xl" />
+        </div>
+      ) : (
+        <div className="mt-6 space-y-6">
+          <SummaryCards data={data?.summary} />
+          <TransactionTable transactions={data?.transactions || []} />
+        </div>
+      )}
 
-      {/* Cashbook Modal */}
       <CashbookModal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
