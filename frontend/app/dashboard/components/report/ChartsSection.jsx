@@ -1,9 +1,11 @@
 export default function ChartsSection({ barData, donutData }) {
-  const maxVal = 65;
+  // ডাইনামিক Max Value বের করা (সবচেয়ে বড় ভ্যালুর উপর নির্ভর করে বার হাইট হবে)
+  const allValues = [...(barData?.income || []), ...(barData?.expense || [])];
+  const maxVal = allValues.length > 0 ? Math.max(...allValues, 10) : 100;
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-3 gap-[16px] mb-[22px]">
-      {/* Bar Chart (Takes 2 columns on desktop) */}
+      {/* Bar Chart */}
       <div className="lg:col-span-2 bg-white rounded-[14px] p-[20px] shadow-[0_2px_12px_rgba(26,34,54,0.07)] border border-[#e4e8f0]">
         <div className="text-[14px] font-bold mb-[16px] flex justify-between items-center text-[#1a2236]">
           আয় ও ব্যয়ের তুলনা
@@ -20,9 +22,9 @@ export default function ChartsSection({ barData, donutData }) {
         </div>
 
         <div className="flex items-end gap-[10px] h-[160px] px-[4px] overflow-x-auto w-full">
-          {barData.months.map((m, i) => {
-            const inH = Math.round((barData.income[i] / maxVal) * 140);
-            const exH = Math.round((barData.expense[i] / maxVal) * 140);
+          {barData?.months.map((m, i) => {
+            const inH = Math.round(((barData.income[i] || 0) / maxVal) * 140);
+            const exH = Math.round(((barData.expense[i] || 0) / maxVal) * 140);
             const isActive = i === barData.currentMonthIndex;
             return (
               <div
@@ -56,7 +58,7 @@ export default function ChartsSection({ barData, donutData }) {
         </div>
       </div>
 
-      {/* Donut Chart (Takes 1 column on desktop) */}
+      {/* Donut Chart */}
       <div className="bg-white rounded-[14px] p-[20px] shadow-[0_2px_12px_rgba(26,34,54,0.07)] border border-[#e4e8f0]">
         <div className="text-[14px] font-bold mb-[16px] text-[#1a2236]">
           ব্যয়ের বিভাগ
@@ -71,6 +73,9 @@ export default function ChartsSection({ barData, donutData }) {
               stroke="#e4e8f0"
               strokeWidth="14"
             />
+
+            {/* Note: In a real advanced chart, these strokeDasharrays would be calculated dynamically based on data. 
+                For now keeping your design intact. */}
             <circle
               cx="50"
               cy="50"
@@ -115,6 +120,7 @@ export default function ChartsSection({ barData, donutData }) {
               strokeDashoffset="-159"
               transform="rotate(-90 50 50)"
             />
+
             <text
               x="50"
               y="47"
@@ -130,7 +136,7 @@ export default function ChartsSection({ barData, donutData }) {
             </text>
           </svg>
           <div className="w-full">
-            {donutData.map((d) => (
+            {donutData?.map((d) => (
               <div
                 key={d.id}
                 className="flex items-center justify-between py-[5px] border-b border-[#e4e8f0] last:border-none text-[12px]"
@@ -147,6 +153,11 @@ export default function ChartsSection({ barData, donutData }) {
                 </div>
               </div>
             ))}
+            {donutData?.length === 0 && (
+              <div className="text-center text-gray-400 text-xs mt-2">
+                কোনো ব্যয়ের ডাটা নেই
+              </div>
+            )}
           </div>
         </div>
       </div>

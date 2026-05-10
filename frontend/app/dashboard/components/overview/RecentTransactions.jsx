@@ -1,45 +1,59 @@
+"use client";
+import { useQuery } from "@tanstack/react-query";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Skeleton } from "@/components/ui/skeleton";
+import api from "@/lib/axiosInstance";
 
-export default function RecentTransactions({ transactions }) {
-  const getAmountColor = (type) =>
-    type === "in" || type === "pos" ? "text-green-600" : "text-red-600";
-  const getAvatarColor = (type) => {
-    if (type === "in") return "bg-green-100 text-green-800";
-    if (type === "out") return "bg-red-100 text-red-800";
-    return "bg-blue-100 text-blue-800";
-  };
+const formatCurrency = (value) =>
+  `৳${new Intl.NumberFormat("en-IN").format(value || 0)}`;
+
+export default function RecentTransactions() {
+  const { data: transactions, isLoading } = useQuery({
+    queryKey: ["recentTransactions"],
+    queryFn: async () => {
+      const res = await api.get("/api/dashboard/recent-transactions");
+      return res.data;
+    },
+  });
+
+  if (isLoading) return <Skeleton className="h-[300px] w-full" />;
 
   return (
     <Card>
       <CardHeader>
-        <div className="flex justify-between items-center">
-          <CardTitle>সাম্প্রতিক লেনদেন</CardTitle>
-          <a href="#" className="text-sm text-blue-600">
-            সব →
-          </a>
-        </div>
+        <CardTitle className="text-gray-700">সাম্প্রতিক লেনদেন</CardTitle>
       </CardHeader>
       <CardContent>
         <div className="space-y-4">
-          {transactions.map((txn, index) => (
-            <div key={index} className="flex items-center">
-              <Avatar className="h-9 w-9">
-                <AvatarFallback className={getAvatarColor(txn.transactionType)}>
-                  {txn.initials}
-                </AvatarFallback>
-              </Avatar>
-              <div className="ml-4 space-y-1">
-                <p className="text-sm font-medium leading-none">{txn.name}</p>
-                <p className="text-sm text-muted-foreground">{txn.type}</p>
+          {transactions?.map((txn) => {
+            // Sale হলে টাকা আসবে (+), Purchase হলে টাকা যাবে (-)
+            const isIn = txn.type === "sale";
+            const colorClass = isIn ? "text-green-600" : "text-red-600";
+            const bgClass = isIn
+              ? "bg-green-100 text-green-700"
+              : "bg-red-100 text-red-700";
+            const sign = isIn ? "+" : "-";
+
+            return (
+              <div key={txn._id} className="flex items-center">
+                <Avatar className="h-10 w-10">
+                  <AvatarFallback className={`font-bold ${bgClass}`}>
+                    {txn.partyName ? txn.partyName.substring(0, 1) : "N"}
+                  </AvatarFallback>
+                </Avatar>
+                <div className="ml-3 space-y-1">
+                  <p className="text-sm font-semibold text-gray-800">
+                    {txn.partyName || "নগদ লেনদেন"}
+                  </p>
+                  <p className="text-xs text-gray-500 uppercase">{txn.type}</p>
+                </div>
+                <div className={`ml-auto font-bold text-sm ${colorClass}`}>
+                  {sign} {formatCurrency(txn.grandTotal)}
+                </div>
               </div>
-              <div
-                className={`ml-auto font-medium ${getAmountColor(txn.transactionType)}`}
-              >
-                {txn.amount}
-              </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       </CardContent>
     </Card>

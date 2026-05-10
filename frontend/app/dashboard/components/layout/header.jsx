@@ -120,7 +120,7 @@ export function Header() {
       <div className="flex-1"></div>
 
       {/* --- Center Tab/Toggle Group --- */}
-      <div className="hidden md:block">
+      {/* <div className="hidden md:block">
         <ToggleGroup
           type="single"
           defaultValue="today"
@@ -149,7 +149,7 @@ export function Header() {
             এই মাস
           </ToggleGroupItem>
         </ToggleGroup>
-      </div>
+      </div> */}
 
       {/* --- Header Right Side Actions --- */}
       <div className="flex items-center gap-2 md:gap-3">

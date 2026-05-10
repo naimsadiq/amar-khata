@@ -107,7 +107,7 @@ export default function CashbookModal({ isOpen, onClose, type }) {
   // সাবমিট মিউটেশন
   const mutation = useMutation({
     mutationFn: async (formData) => {
-      console.log(formData);
+      // console.log(formData);
       const res = await api.post("/api/cashbook", formData);
       return res.data;
     },

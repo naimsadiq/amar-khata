@@ -7,20 +7,55 @@ import {
   UserPlus,
   BarChart2,
 } from "lucide-react";
+import { useRouter } from "next/navigation";
 
-export default function QuickActions({ setIsModalOpen }) {
+export default function QuickActions({
+  setIsModalOpen,
+  setIsCashbookModalOpen,
+  setTransactionType,
+  onPurchaseClick,
+  onAddClick
+}) {
+  const router = useRouter();
+  const onCashIn = () => {
+    setTransactionType("IN");
+    setIsCashbookModalOpen(true);
+  };
+
+  const onCashOut = () => {
+    setTransactionType("OUT");
+    setIsCashbookModalOpen(true);
+  };
   return (
     <div className="flex flex-wrap gap-2">
-      <Button>
+      <Button onClick={() => router.push("/dashboard/pos")}>
         <ShoppingCart className="mr-2 h-4 w-4" /> নতুন বিক্রয়
       </Button>
-      <Button variant="secondary">
+      <Button
+        onClick={onCashIn}
+        className="bg-green-600 hover:bg-green-700 text-white"
+      >
         <Download className="mr-2 h-4 w-4" /> টাকা পেলাম
       </Button>
-      <Button variant="secondary">
+
+      <Button
+        onClick={onCashOut}
+        className="bg-red-600 hover:bg-red-700 text-white"
+      >
         <Upload className="mr-2 h-4 w-4" /> টাকা দিলাম
       </Button>
-      <Button variant="secondary">
+      <Button
+        onClick={onAddClick}
+        className="bg-emerald-600 hover:bg-emerald-700 text-white"
+      >
+        <PlusCircle className="mr-2 h-4 w-4" />
+        নতুন পণ্য
+      </Button>
+
+      <Button
+        onClick={onPurchaseClick}
+        className="bg-purple-600 hover:bg-purple-700 text-white"
+      >
         <ShoppingCart className="mr-2 h-4 w-4" /> মাল কিনলাম
       </Button>
       <Button
@@ -29,7 +64,10 @@ export default function QuickActions({ setIsModalOpen }) {
       >
         <UserPlus className="mr-2 h-4 w-4" /> নতুন গ্রাহক
       </Button>
-      <Button className="bg-blue-600 hover:bg-blue-700">
+      <Button
+        onClick={() => router.push("/dashboard/reports")}
+        className="bg-blue-600 hover:bg-blue-700"
+      >
         <BarChart2 className="mr-2 h-4 w-4" /> রিপোর্ট দেখুন
       </Button>
     </div>

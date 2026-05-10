@@ -756,6 +756,565 @@ async function run() {
       }
     });
 
+    app.get("/api/dashboard/summary", authMiddleware, async (req, res) => {
+      try {
+        const user = req.user;
+        const businessId = user.businessId;
+
+        // চলতি মাসের প্রথম এবং শেষ তারিখ বের করা
+        const startOfMonth = new Date();
+        startOfMonth.setDate(1);
+        startOfMonth.setHours(0, 0, 0, 0);
+
+        const endOfMonth = new Date(startOfMonth);
+        endOfMonth.setMonth(startOfMonth.getMonth() + 1);
+
+        // Promise.all ব্যবহার করে ৫টি কুয়েরি একসাথে রান করানো (খুবই ফাস্ট হবে)
+        const [
+          receivableResult,
+          payableResult,
+          cashbookResult,
+          monthlySalesResult,
+          monthlyPurchasesResult,
+        ] = await Promise.all([
+          // ১. মোট পাওনা (Customer দের থেকে যা পাবো)
+          partiesCollection
+            .aggregate([
+              { $match: { businessId, type: "customer" } },
+              {
+                $group: { _id: null, totalReceivable: { $sum: "$currentDue" } },
+              },
+            ])
+            .toArray(),
+
+          // ২. মোট দেনা (Supplier দের যা দিবো)
+          partiesCollection
+            .aggregate([
+              { $match: { businessId, type: "supplier" } },
+              { $group: { _id: null, totalPayable: { $sum: "$currentDue" } } },
+            ])
+            .toArray(),
+
+          // ৩. হাতে নগদ (Cashbook এর IN - OUT)
+          cashbookCollection
+            .aggregate([
+              { $match: { businessId } },
+              {
+                $group: {
+                  _id: "$transactionType",
+                  totalAmount: { $sum: "$amount" },
+                },
+              },
+            ])
+            .toArray(),
+
+          // ৪. এই মাসের মোট আয় (Sales)
+          transactionsCollection
+            .aggregate([
+              {
+                $match: {
+                  businessId,
+                  type: "sale",
+                  date: { $gte: startOfMonth, $lt: endOfMonth },
+                },
+              },
+              { $group: { _id: null, totalIncome: { $sum: "$grandTotal" } } },
+            ])
+            .toArray(),
+
+          // ৫. এই মাসের মোট ব্যয় (Purchases)
+          transactionsCollection
+            .aggregate([
+              {
+                $match: {
+                  businessId,
+                  type: "purchase",
+                  date: { $gte: startOfMonth, $lt: endOfMonth },
+                },
+              },
+              { $group: { _id: null, totalExpense: { $sum: "$grandTotal" } } },
+            ])
+            .toArray(),
+        ]);
+
+        // ডাটা এক্সট্রাক্ট করা (যদি ডাটা না থাকে তবে ০ হবে)
+        const totalReceivable = receivableResult[0]?.totalReceivable || 0;
+        const totalPayable = payableResult[0]?.totalPayable || 0;
+
+        // Cash Calculation
+        let cashIn = 0;
+        let cashOut = 0;
+        cashbookResult.forEach((item) => {
+          if (item._id === "IN") cashIn = item.totalAmount;
+          if (item._id === "OUT") cashOut = item.totalAmount;
+        });
+        const cashInHand = cashIn - cashOut;
+
+        // Monthly Profit/Loss Calculation
+        const monthlyIncome = monthlySalesResult[0]?.totalIncome || 0;
+        const monthlyExpense = monthlyPurchasesResult[0]?.totalExpense || 0;
+        const netProfit = monthlyIncome - monthlyExpense;
+
+        // মোট ব্যালেন্স = হাতে নগদ + পাওনা - দেনা
+        const totalBalance = cashInHand + totalReceivable - totalPayable;
+
+        res.status(200).send({
+          totalBalance,
+          cashInHand,
+          totalReceivable,
+          totalPayable,
+          monthlyIncome,
+          monthlyExpense,
+          netProfit,
+        });
+      } catch (error) {
+        console.error("❌ Error fetching dashboard summary:", error);
+        res.status(500).send({ message: "Server error", error: error.message });
+      }
+    });
+
+    app.get(
+      "/api/dashboard/recent-transactions",
+      authMiddleware,
+      async (req, res) => {
+        try {
+          const user = req.user;
+
+          // সর্বশেষ ৬টি সেলস বা পারচেজ আনবে।
+          // Aggregate এ $lookup ব্যবহার করা হয়েছে যাতে Party এর নাম পাওয়া যায়।
+          const recentTransactions = await transactionsCollection
+            .aggregate([
+              { $match: { businessId: user.businessId } },
+              { $sort: { date: -1, createdAt: -1 } },
+              { $limit: 6 },
+              {
+                $lookup: {
+                  from: "parties", // আপনার ডাটাবেসের কালেকশনের সঠিক নাম দিবেন
+                  localField: "partyId",
+                  foreignField: "_id",
+                  as: "partyInfo",
+                },
+              },
+              {
+                $unwind: {
+                  path: "$partyInfo",
+                  preserveNullAndEmptyArrays: true,
+                },
+              },
+              {
+                $project: {
+                  type: 1,
+                  invoiceNo: 1,
+                  grandTotal: 1,
+                  dueAmount: 1,
+                  date: 1,
+                  partyName: "$partyInfo.name",
+                  partyType: "$partyInfo.type",
+                },
+              },
+            ])
+            .toArray();
+
+          res.status(200).send(recentTransactions);
+        } catch (error) {
+          res
+            .status(500)
+            .send({ message: "Server error", error: error.message });
+        }
+      },
+    );
+
+    app.get("/api/dashboard/due-list", authMiddleware, async (req, res) => {
+      try {
+        const user = req.user;
+
+        const dueList = await partiesCollection
+          .find({
+            businessId: user.businessId,
+            type: "customer",
+            currentDue: { $gt: 0 },
+          })
+          .sort({ currentDue: -1 }) // সবচেয়ে বেশি বকেয়া উপরে
+          .limit(5)
+          .project({ name: 1, phone: 1, currentDue: 1, updatedAt: 1 }) // শুধু প্রয়োজনীয় ডাটা পাঠাচ্ছি
+          .toArray();
+
+        res.status(200).send(dueList);
+      } catch (error) {
+        res.status(500).send({ message: "Server error", error: error.message });
+      }
+    });
+
+    app.get("/api/dashboard/stock-alerts", authMiddleware, async (req, res) => {
+      try {
+        const user = req.user;
+
+        const stockAlerts = await productsCollection
+          .find({
+            businessId: user.businessId,
+            $expr: { $lte: ["$stockQuantity", "$lowStockAlert"] }, // stock <= alert
+          })
+          .sort({ stockQuantity: 1 }) // যার স্টক সবচেয়ে কম সে উপরে
+          .limit(6)
+          .project({ name: 1, category: 1, stockQuantity: 1, lowStockAlert: 1 })
+          .toArray();
+
+        res.status(200).send(stockAlerts);
+      } catch (error) {
+        res.status(500).send({ message: "Server error", error: error.message });
+      }
+    });
+
+    app.get("/api/dashboard/top-products", authMiddleware, async (req, res) => {
+      try {
+        const user = req.user;
+
+        const topProducts = await transactionsCollection
+          .aggregate([
+            { $match: { businessId: user.businessId, type: "sale" } },
+            { $unwind: "$items" }, // items অ্যারের প্রতিটি অবজেক্টকে আলাদা করবে
+            {
+              $group: {
+                _id: "$items.productId",
+                name: { $first: "$items.name" },
+                totalQuantitySold: { $sum: "$items.quantity" },
+                totalRevenue: { $sum: "$items.totalLineAmount" },
+              },
+            },
+            { $sort: { totalQuantitySold: -1 } }, // সবচেয়ে বেশি বিক্রিত আগে
+            { $limit: 5 },
+          ])
+          .toArray();
+
+        res.status(200).send(topProducts);
+      } catch (error) {
+        res.status(500).send({ message: "Server error", error: error.message });
+      }
+    });
+
+    app.get("/api/dashboard/weekly-chart", authMiddleware, async (req, res) => {
+      try {
+        const user = req.user;
+
+        // ৭ দিন আগের তারিখ বের করা
+        const sevenDaysAgo = new Date();
+        sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 6); // আজ সহ ৭ দিন
+        sevenDaysAgo.setHours(0, 0, 0, 0);
+
+        const chartData = await transactionsCollection
+          .aggregate([
+            {
+              $match: {
+                businessId: user.businessId,
+                type: "sale",
+                date: { $gte: sevenDaysAgo },
+              },
+            },
+            {
+              $group: {
+                _id: { $dateToString: { format: "%Y-%m-%d", date: "$date" } }, // তারিখ অনুযায়ী গ্রুপ
+                totalSales: { $sum: "$grandTotal" },
+                totalDue: { $sum: "$dueAmount" },
+              },
+            },
+            { $sort: { _id: 1 } }, // তারিখ অনুযায়ী সোজা করে সাজানো (পুরোনো থেকে নতুন)
+          ])
+          .toArray();
+
+        res.status(200).send(chartData);
+      } catch (error) {
+        res.status(500).send({ message: "Server error", error: error.message });
+      }
+    });
+
+    app.get("/api/reports/summary-cards", authMiddleware, async (req, res) => {
+      try {
+        const user = req.user;
+        const businessId = user.businessId;
+
+        const now = new Date();
+        // চলতি মাস
+        const startOfCurrentMonth = new Date(
+          now.getFullYear(),
+          now.getMonth(),
+          1,
+        );
+        const endOfCurrentMonth = new Date(
+          now.getFullYear(),
+          now.getMonth() + 1,
+          0,
+          23,
+          59,
+          59,
+        );
+        // গত মাস
+        const startOfPrevMonth = new Date(
+          now.getFullYear(),
+          now.getMonth() - 1,
+          1,
+        );
+        const endOfPrevMonth = new Date(
+          now.getFullYear(),
+          now.getMonth(),
+          0,
+          23,
+          59,
+          59,
+        );
+
+        const [currentMonthData, prevMonthData] = await Promise.all([
+          // চলতি মাসের হিসাব
+          transactionsCollection
+            .aggregate([
+              {
+                $match: {
+                  businessId,
+                  date: { $gte: startOfCurrentMonth, $lte: endOfCurrentMonth },
+                },
+              },
+              {
+                $group: {
+                  _id: "$type",
+                  totalAmount: { $sum: "$grandTotal" },
+                  invoiceCount: { $sum: 1 },
+                },
+              },
+            ])
+            .toArray(),
+
+          // গত মাসের হিসাব
+          transactionsCollection
+            .aggregate([
+              {
+                $match: {
+                  businessId,
+                  date: { $gte: startOfPrevMonth, $lte: endOfPrevMonth },
+                },
+              },
+              {
+                $group: { _id: "$type", totalAmount: { $sum: "$grandTotal" } },
+              },
+            ])
+            .toArray(),
+        ]);
+
+        // ডেটা প্রসেসিং
+        let currentIncome = 0,
+          currentExpense = 0,
+          currentInvoices = 0;
+        currentMonthData.forEach((item) => {
+          if (item._id === "sale") {
+            currentIncome = item.totalAmount;
+            currentInvoices = item.invoiceCount;
+          }
+          if (item._id === "purchase") currentExpense = item.totalAmount;
+        });
+
+        let prevIncome = 0,
+          prevExpense = 0;
+        prevMonthData.forEach((item) => {
+          if (item._id === "sale") prevIncome = item.totalAmount;
+          if (item._id === "purchase") prevExpense = item.totalAmount;
+        });
+
+        const currentNetProfit = currentIncome - currentExpense;
+        const prevNetProfit = prevIncome - prevExpense;
+
+        // পার্সেন্টেজ ক্যালকুলেশন ফাংশন
+        const calcGrowth = (current, prev) =>
+          prev === 0 ? 100 : (((current - prev) / prev) * 100).toFixed(1);
+
+        res.status(200).send({
+          totalIncome: currentIncome,
+          incomeGrowth: calcGrowth(currentIncome, prevIncome),
+
+          totalExpense: currentExpense,
+          expenseGrowth: calcGrowth(currentExpense, prevExpense),
+
+          netProfit: currentNetProfit,
+          profitGrowth: calcGrowth(currentNetProfit, prevNetProfit),
+
+          totalInvoices: currentInvoices,
+        });
+      } catch (error) {
+        console.error("❌ Error fetching summary cards:", error);
+        res.status(500).send({ message: "Server error", error: error.message });
+      }
+    });
+
+    app.get(
+      "/api/reports/income-expense-chart",
+      authMiddleware,
+      async (req, res) => {
+        try {
+          const user = req.user;
+          const currentYear = new Date().getFullYear();
+          const startOfYear = new Date(currentYear, 0, 1);
+          const endOfYear = new Date(currentYear, 11, 31, 23, 59, 59);
+
+          const chartData = await transactionsCollection
+            .aggregate([
+              {
+                $match: {
+                  businessId: user.businessId,
+                  date: { $gte: startOfYear, $lte: endOfYear },
+                },
+              },
+              {
+                $group: {
+                  _id: {
+                    month: { $month: "$date" },
+                    type: "$type",
+                  },
+                  total: { $sum: "$grandTotal" },
+                },
+              },
+            ])
+            .toArray();
+
+          // ১২ মাসের জন্য ডিফল্ট এরে তৈরি করা
+          const monthlyData = Array.from({ length: 12 }, (_, i) => ({
+            month: i + 1,
+            income: 0,
+            expense: 0,
+          }));
+
+          // ডাটাবেস থেকে পাওয়া ডাটা ম্যাপিং করা
+          chartData.forEach((item) => {
+            const monthIndex = item._id.month - 1;
+            if (item._id.type === "sale") {
+              monthlyData[monthIndex].income = item.total;
+            } else if (item._id.type === "purchase") {
+              monthlyData[monthIndex].expense = item.total;
+            }
+          });
+
+          res.status(200).send(monthlyData);
+        } catch (error) {
+          console.error("❌ Error fetching chart data:", error);
+          res
+            .status(500)
+            .send({ message: "Server error", error: error.message });
+        }
+      },
+    );
+
+    app.get(
+      "/api/reports/expense-categories",
+      authMiddleware,
+      async (req, res) => {
+        try {
+          const user = req.user;
+          const businessId = user.businessId;
+
+          const startOfMonth = new Date();
+          startOfMonth.setDate(1);
+          startOfMonth.setHours(0, 0, 0, 0);
+
+          // ১. পণ্য ক্রয় (Purchases থেকে)
+          const purchaseExpenses = await transactionsCollection
+            .aggregate([
+              {
+                $match: {
+                  businessId,
+                  type: "purchase",
+                  date: { $gte: startOfMonth },
+                },
+              },
+              { $group: { _id: "পণ্য ক্রয়", total: { $sum: "$grandTotal" } } },
+            ])
+            .toArray();
+
+          // ২. অন্যান্য খরচ (Cashbook থেকে - OUT transaction)
+          const otherExpenses = await cashbookCollection
+            .aggregate([
+              {
+                $match: {
+                  businessId,
+                  transactionType: "OUT",
+                  date: { $gte: startOfMonth },
+                  category: { $ne: "Supplier_Payment" }, // সাপ্লায়ার পেমেন্ট বাদ, কারণ তা Purchases এ ধরেছি
+                },
+              },
+              { $group: { _id: "$category", total: { $sum: "$amount" } } },
+            ])
+            .toArray();
+
+          // সব ডেটা একসাথে করা
+          const allExpenses = [...purchaseExpenses, ...otherExpenses].map(
+            (item) => ({
+              category: item._id, // Frontend এ 'বেতন', 'ভাড়া', 'অন্যান্য' হিসেবে ম্যাপ করবেন
+              amount: item.total,
+            }),
+          );
+
+          res.status(200).send(allExpenses);
+        } catch (error) {
+          console.error("❌ Error fetching expense categories:", error);
+          res
+            .status(500)
+            .send({ message: "Server error", error: error.message });
+        }
+      },
+    );
+
+    app.get("/api/reports/top-customers", authMiddleware, async (req, res) => {
+      try {
+        const user = req.user;
+        const startOfMonth = new Date();
+        startOfMonth.setDate(1);
+        startOfMonth.setHours(0, 0, 0, 0);
+
+        const topCustomers = await transactionsCollection
+          .aggregate([
+            {
+              $match: {
+                businessId: user.businessId,
+                type: "sale",
+                date: { $gte: startOfMonth },
+              },
+            },
+            {
+              $group: {
+                _id: "$partyId",
+                totalPurchaseAmount: { $sum: "$grandTotal" }, // মোট কত টাকার কিনেছে
+                totalTransactions: { $sum: 1 }, // কয়বার কিনেছে
+              },
+            },
+            { $sort: { totalPurchaseAmount: -1 } }, // সবচেয়ে বেশি কেনা গ্রাহক উপরে
+            { $limit: 5 }, // শীর্ষ ৫ জন
+            {
+              $lookup: {
+                from: "parties",
+                localField: "_id",
+                foreignField: "_id",
+                as: "customerInfo",
+              },
+            },
+            {
+              $unwind: {
+                path: "$customerInfo",
+                preserveNullAndEmptyArrays: true,
+              },
+            },
+            {
+              $project: {
+                name: { $ifNull: ["$customerInfo.name", "নগদ বিক্রয়"] },
+                phone: "$customerInfo.phone",
+                totalPurchaseAmount: 1,
+                totalTransactions: 1,
+              },
+            },
+          ])
+          .toArray();
+
+        res.status(200).send(topCustomers);
+      } catch (error) {
+        console.error("❌ Error fetching top customers:", error);
+        res.status(500).send({ message: "Server error", error: error.message });
+      }
+    });
+
     // await client.db("admin").command({ ping: 1 });
     console.log("✅ MongoDB Connected Successfully");
   } catch (error) {

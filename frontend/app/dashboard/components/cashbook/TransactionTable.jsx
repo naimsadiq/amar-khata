@@ -5,13 +5,15 @@ export default function TransactionTable({ transactions }) {
   const formatDate = (d) => new Date(d).toLocaleDateString("en-GB");
 
   // সার্চ লজিক: ক্যাটাগরি, নোট, নাম বা ফোন নম্বর দিয়ে সার্চ করা যাবে
-  const filteredData = transactions?.filter(
-    (item) =>
-      item.category?.toLowerCase().includes(search.toLowerCase()) ||
-      item.note?.toLowerCase().includes(search.toLowerCase()) ||
-      item.partyName?.toLowerCase().includes(search.toLowerCase()) ||
-      item.partyPhone?.includes(search),
-  );
+  const filteredData = transactions
+    ?.filter(
+      (item) =>
+        item.category?.toLowerCase().includes(search.toLowerCase()) ||
+        item.note?.toLowerCase().includes(search.toLowerCase()) ||
+        item.partyName?.toLowerCase().includes(search.toLowerCase()) ||
+        item.partyPhone?.includes(search),
+    )
+    ?.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
 
   return (
     <div className="bg-white rounded-[12px] border border-[#e8ecf0] overflow-hidden">
