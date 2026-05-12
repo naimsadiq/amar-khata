@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { CustomerCombobox } from "./CustomerCombobox";
 import { Trash2, Loader2, Banknote, CreditCard } from "lucide-react";
 import Swal from "sweetalert2";
@@ -14,7 +14,7 @@ export default function CartSidebar({
   setIsModalOpen,
 }) {
   const [discount, setDiscount] = useState("");
-  const [paidAmount, setPaidAmount] = useState(""); // নগদ কত টাকা দিচ্ছে
+  const [paidAmount, setPaidAmount] = useState("");
   const [selectedCustomer, setSelectedCustomer] = useState(null);
 
   // হিসাব-নিকাশ
@@ -24,15 +24,6 @@ export default function CartSidebar({
   );
   const grandTotal = subtotal - (Number(discount) || 0);
   const dueAmount = grandTotal - (Number(paidAmount) || 0);
-
-  // যখনই ডিসকাউন্ট পরিবর্তন হবে বা কার্ট আইটেম কমবে-বাড়বে,
-  // তখন পেইড অ্যামাউন্ট অটোমেটিক গ্র্যান্ড টোটালের সমান করে দেওয়ার জন্য (অপশনাল)
-  // যদি আপনি চান কাস্টমার ডিফল্টভাবে ফুল পেমেন্ট করবে:
-  /*
-  useEffect(() => {
-    setPaidAmount(grandTotal > 0 ? grandTotal.toString() : "");
-  }, [grandTotal]);
-  */
 
   const handleSubmit = () => {
     if (cartItems.length === 0) {
@@ -53,7 +44,6 @@ export default function CartSidebar({
       );
     }
 
-    // যদি ১ টাকাও বকেয়া থাকে, তবে কাস্টমার সিলেক্ট করা বাধ্যতামূলক
     if (dueAmount > 0 && !selectedCustomer) {
       return Swal.fire(
         "গ্রাহক নির্বাচন করুন!",
@@ -76,67 +66,70 @@ export default function CartSidebar({
     onCheckout(payload);
   };
 
-  // কুইক বাটন: ফুল ক্যাশ পেমেন্ট করার জন্য
   const handleFullPayment = () => {
     setPaidAmount(grandTotal.toString());
   };
 
   return (
-    <div className="w-full lg:w-[360px] shrink-0 flex flex-col">
-      <div className="bg-white rounded-[12px] border border-[#e8ecf0] flex flex-col flex-1 h-full shadow-sm">
+    // ফিক্স: মোবাইলের জন্য h-[500px] সরিয়ে h-auto দেওয়া হয়েছে
+    <div className="w-full lg:w-[360px] xl:w-[400px] shrink-0 flex flex-col h-auto lg:h-full">
+      {/* ফিক্স: overflow-hidden দেওয়া হয়েছে যেন ভেতরের কন্টেন্ট বাইরে না যায় */}
+      <div className="bg-card rounded-xl border border-border flex flex-col flex-1 shadow-sm overflow-hidden">
+        
         {/* কার্ট হেডার */}
-        <div className="p-[14px_16px] border-b border-[#e8ecf0] flex justify-between items-center bg-white shrink-0">
-          <span className="text-[0.9rem] font-bold text-[#2c3e50]">
+        <div className="p-4 border-b border-border flex justify-between items-center bg-card shrink-0">
+          <span className="text-sm font-bold text-foreground">
             🧾 বর্তমান বিল
           </span>
-          <span className="text-[0.75rem] text-[#7f8c9a] font-medium">
+          <span className="text-xs text-muted-foreground font-medium">
             {billNo}
           </span>
         </div>
 
         {/* কার্ট আইটেম লিস্ট */}
-        <div className="flex-1 overflow-y-auto py-[8px]">
+        {/* ফিক্স: মোবাইলে স্ক্রল হওয়ার জন্য max-h-[40vh] এবং ডেস্কটপের জন্য lg:max-h-none দেওয়া হয়েছে */}
+        <div className="flex-1 overflow-y-auto p-2 space-y-1 min-h-[150px] max-h-[40vh] lg:max-h-none">
           {cartItems.length === 0 ? (
-            <div className="text-center text-[#7f8c9a] text-sm mt-10">
+            <div className="text-center text-muted-foreground text-sm mt-10">
               কোনো পণ্য যোগ করা হয়নি
             </div>
           ) : (
             cartItems.map((item) => (
               <div
                 key={item._id}
-                className="flex items-center gap-[10px] p-[10px_16px] border-b border-[#e8ecf0] last:border-none"
+                className="flex items-center gap-3 p-2 border-b border-border/50 last:border-none bg-background rounded-lg"
               >
                 <div className="flex-1">
-                  <div className="text-[0.82rem] font-bold text-[#2c3e50]">
+                  <div className="text-sm font-bold text-foreground">
                     {item.name}
                   </div>
-                  <div className="text-[0.78rem] text-[#7f8c9a]">
+                  <div className="text-xs text-muted-foreground">
                     ৳{item.sellPrice.toLocaleString("en-IN")}/{item.unit}
                   </div>
                 </div>
-                <div className="flex items-center gap-[6px]">
+                <div className="flex items-center gap-1.5">
                   <button
                     onClick={() => updateQty(item._id, -1)}
-                    className="w-[24px] h-[24px] border border-[#e8ecf0] rounded bg-white hover:bg-gray-50 flex items-center justify-center"
+                    className="w-7 h-7 border border-border rounded-md bg-card hover:bg-muted flex items-center justify-center text-foreground transition"
                   >
                     -
                   </button>
-                  <span className="text-[0.85rem] font-bold min-w-[20px] text-center">
+                  <span className="text-sm font-bold min-w-[24px] text-center text-foreground">
                     {item.qty}
                   </span>
                   <button
                     onClick={() => updateQty(item._id, 1)}
-                    className="w-[24px] h-[24px] border border-[#e8ecf0] rounded bg-white hover:bg-gray-50 flex items-center justify-center"
+                    className="w-7 h-7 border border-border rounded-md bg-card hover:bg-muted flex items-center justify-center text-foreground transition"
                   >
                     +
                   </button>
                 </div>
-                <div className="text-[0.85rem] font-bold text-[#2c3e50] min-w-[60px] text-right">
+                <div className="text-sm font-bold text-foreground min-w-[65px] text-right">
                   ৳{(item.sellPrice * item.qty).toLocaleString("en-IN")}
                 </div>
                 <button
                   onClick={() => removeItem(item._id)}
-                  className="text-[#e74c3c] hover:bg-red-50 p-1 rounded transition-colors"
+                  className="text-destructive hover:bg-destructive/10 p-1.5 rounded-md transition-colors"
                 >
                   <Trash2 size={16} />
                 </button>
@@ -146,42 +139,43 @@ export default function CartSidebar({
         </div>
 
         {/* পেমেন্ট সেকশন */}
-        <div className="p-[16px] border-t border-[#e8ecf0] bg-[#fcfdfe] shrink-0">
+        {/* ফিক্স: z-10 এবং relative দেওয়া হয়েছে যেন কোনোভাবেই আইটেমের নিচে না যায় */}
+        <div className="p-4 border-t border-border bg-card shrink-0 relative z-10">
           {/* হিসাব নিকাশ */}
-          <div className="space-y-2 mb-3">
-            <div className="flex justify-between text-[0.82rem] text-[#7f8c9a]">
+          <div className="space-y-2.5 mb-4">
+            <div className="flex justify-between text-sm text-muted-foreground">
               <span>সাবটোটাল</span>
               <span>৳{subtotal.toLocaleString("en-IN")}</span>
             </div>
 
-            <div className="flex justify-between items-center text-[0.82rem] text-[#e74c3c]">
+            <div className="flex justify-between items-center text-sm text-destructive font-medium">
               <span>ডিসকাউন্ট (৳)</span>
               <input
                 type="number"
                 value={discount}
                 onChange={(e) => setDiscount(e.target.value)}
-                className="w-[90px] h-[28px] border border-gray-200 rounded px-2 text-right outline-none focus:border-[#e74c3c]"
+                className="w-24 h-8 border border-border rounded-md px-2 text-right bg-background text-foreground outline-none focus:border-destructive focus:ring-1 focus:ring-destructive"
                 placeholder="0"
               />
             </div>
 
-            <div className="flex justify-between text-[1rem] font-bold text-[#2c3e50] pt-2 border-t border-dashed border-[#d1d8df]">
+            <div className="flex justify-between text-base font-bold text-foreground pt-3 border-t border-dashed border-border">
               <span>মোট বিল</span>
-              <span className="text-[#2ecc71]">
+              <span className="text-primary">
                 ৳{grandTotal.toLocaleString("en-IN")}
               </span>
             </div>
           </div>
 
           {/* নগদ গ্রহণ ইনপুট */}
-          <div className="bg-white p-3 rounded-lg border border-[#e8ecf0] shadow-sm mb-3">
-            <div className="flex justify-between items-center mb-2">
-              <label className="text-[0.85rem] font-bold text-[#2c3e50]">
+          <div className="bg-background p-3.5 rounded-lg border border-border shadow-sm mb-4">
+            <div className="flex justify-between items-center mb-2.5">
+              <label className="text-sm font-bold text-foreground">
                 নগদ গ্রহণ (৳)
               </label>
               <button
                 onClick={handleFullPayment}
-                className="text-[0.7rem] bg-[#2ecc71]/10 text-[#2ecc71] px-2 py-1 rounded hover:bg-[#2ecc71] hover:text-white transition-all"
+                className="text-[11px] font-medium bg-primary/10 text-primary px-2.5 py-1 rounded-md hover:bg-primary hover:text-primary-foreground transition-all"
               >
                 পুরো নগদ
               </button>
@@ -190,15 +184,15 @@ export default function CartSidebar({
               type="number"
               value={paidAmount}
               onChange={(e) => setPaidAmount(e.target.value)}
-              className="w-full h-[36px] border border-[#cbd5e0] rounded-md px-3 text-[1rem] font-bold text-[#2ecc71] outline-none focus:ring-2 focus:ring-[#2ecc71]/20 focus:border-[#2ecc71]"
+              className="w-full h-10 border border-border bg-background rounded-md px-3 text-base font-bold text-primary outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-all"
               placeholder="0.00"
             />
 
             {/* বকেয়া স্ট্যাটাস */}
-            <div className="flex justify-between items-center mt-2 text-[0.8rem]">
-              <span className="text-[#7f8c9a]">বকেয়া থাকবে:</span>
+            <div className="flex justify-between items-center mt-3 text-xs">
+              <span className="text-muted-foreground">বকেয়া থাকবে:</span>
               <span
-                className={`font-bold ${dueAmount > 0 ? "text-[#e67e22]" : "text-gray-400"}`}
+                className={`font-bold ${dueAmount > 0 ? "text-amber-500" : "text-muted-foreground"}`}
               >
                 ৳{dueAmount > 0 ? dueAmount.toLocaleString("en-IN") : "0"}
               </span>
@@ -219,10 +213,10 @@ export default function CartSidebar({
           <button
             onClick={handleSubmit}
             disabled={isSubmitting}
-            className={`w-full flex items-center justify-center gap-2 p-[12px] rounded-[10px] font-bold text-[0.95rem] transition-all shadow-md ${
+            className={`w-full flex items-center justify-center gap-2 p-3 rounded-lg font-bold text-[15px] transition-all shadow-sm hover:shadow-md ${
               dueAmount > 0
-                ? "bg-[#3498db] hover:bg-[#2980b9] text-white"
-                : "bg-[#2ecc71] hover:bg-[#27ae60] text-white"
+                ? "bg-blue-600 hover:bg-blue-700 text-white"
+                : "bg-primary hover:bg-primary/90 text-primary-foreground"
             }`}
           >
             {isSubmitting ? (

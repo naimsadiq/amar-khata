@@ -52,7 +52,6 @@ export default function CashbookModal({ isOpen, onClose, type }) {
     },
   });
 
-  // Modal ওপেন হলে ফর্ম রিসেট করা এবং সঠিক ডিফল্ট ক্যাটাগরি সেট করা (এটি যোগ করা হয়েছে)
   useEffect(() => {
     if (isOpen) {
       reset({
@@ -67,30 +66,22 @@ export default function CashbookModal({ isOpen, onClose, type }) {
   }, [isOpen, isIncome, reset]);
 
   const selectedCategory = watch("category");
-  // const selectedParty = watch("partyId");
-
   const showPartyDropdown =
     selectedCategory === "Customer_Collection" ||
     selectedCategory === "Supplier_Payment";
 
-  // Category বদলালে party ও referenceNo রিসেট করা
   useEffect(() => {
     setValue("partyId", null);
     setValue("referenceNo", "");
     setValue("amount", "");
   }, [selectedCategory, setValue]);
 
-  // Parties ফেচ করা
   const { data: parties = [] } = useQuery({
     queryKey: ["parties"],
-    queryFn: async () => {
-      const res = await api.get("/api/parties");
-      return res.data;
-    },
+    queryFn: async () => (await api.get("/api/parties")).data,
     enabled: isOpen,
   });
 
-  // কাস্টমার/সাপ্লায়ার ফিল্টার — শুধু বকেয়া আছে এমন
   const filteredParties = parties.filter((p) => {
     if (selectedCategory === "Customer_Collection")
       return p.type === "customer" && p.currentDue > 0;
@@ -104,13 +95,9 @@ export default function CashbookModal({ isOpen, onClose, type }) {
     label: `${p.name} (${p.phone}) — বকেয়া: ${p.currentDue || 0} ৳`,
   }));
 
-  // সাবমিট মিউটেশন
   const mutation = useMutation({
-    mutationFn: async (formData) => {
-      // console.log(formData);
-      const res = await api.post("/api/cashbook", formData);
-      return res.data;
-    },
+    mutationFn: async (formData) =>
+      (await api.post("/api/cashbook", formData)).data,
     onSuccess: () => {
       Swal.fire({ icon: "success", title: "সফল!", text: "লেনদেন সেভ হয়েছে।" });
       queryClient.invalidateQueries({ queryKey: ["cashbook"] });
@@ -128,55 +115,48 @@ export default function CashbookModal({ isOpen, onClose, type }) {
   });
 
   const onSubmit = (data) => {
-    // এখানে আমরা সিলেক্ট করা পার্টি থেকে নাম ও ফোন বের করে নিচ্ছি
-    // data.partyId হলো react-select এর ভ্যালু (যা আপনি Controller এ সেট করেছেন)
     const selectedPartyData = data.partyId
       ? parties.find((p) => p._id === data.partyId.value)
       : null;
-
-    const payload = {
+    mutation.mutate({
       ...data,
       transactionType: type,
       amount: Number(data.amount),
       partyId: data.partyId ? data.partyId.value : null,
-
-      // নতুন: নাম ও ফোন যোগ করা
       partyName: selectedPartyData ? selectedPartyData.name : null,
       partyPhone: selectedPartyData ? selectedPartyData.phone : null,
-
       partyModel:
         selectedCategory === "Customer_Collection"
           ? "Customer"
           : selectedCategory === "Supplier_Payment"
             ? "Supplier"
             : null,
-    };
-
-    mutation.mutate(payload);
+    });
   };
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-[480px] rounded-2xl p-6 overflow-y-auto max-h-[90vh] min-h-[420px]">
+      <DialogContent className="sm:max-w-[480px] rounded-2xl p-6 overflow-y-auto max-h-[90vh] min-h-[420px] bg-card border-border">
         <DialogHeader>
           <DialogTitle
-            className={`text-lg font-bold ${isIncome ? "text-[#2ecc71]" : "text-[#e74c3c]"}`}
+            className={`text-lg font-bold ${isIncome ? "text-emerald-600 dark:text-emerald-400" : "text-destructive"}`}
           >
             {isIncome ? "টাকা পেলাম (Cash In)" : "টাকা দিলাম (Cash Out)"}
           </DialogTitle>
-          <DialogDescription>লেনদেনের বিবরণ নিচে লিখুন।</DialogDescription>
+          <DialogDescription className="text-muted-foreground">
+            লেনদেনের বিবরণ নিচে লিখুন।
+          </DialogDescription>
         </DialogHeader>
 
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4 mt-2">
-          {/* ক্যাটাগরি এবং তারিখ */}
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="text-xs text-gray-600 mb-1 block">
+              <label className="text-xs text-foreground mb-1 block">
                 খাত (Category) *
               </label>
               <select
                 {...register("category", { required: true })}
-                className="w-full h-10 px-3 py-2 rounded-lg border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full h-10 px-3 py-2 rounded-lg border border-border bg-background text-foreground text-sm focus:outline-none focus:ring-1 focus:ring-primary"
               >
                 {categories.map((cat) => (
                   <option key={cat.value} value={cat.value}>
@@ -186,21 +166,20 @@ export default function CashbookModal({ isOpen, onClose, type }) {
               </select>
             </div>
             <div>
-              <label className="text-xs text-gray-600 mb-1 block">
+              <label className="text-xs text-foreground mb-1 block">
                 তারিখ *
               </label>
               <Input
                 type="date"
                 {...register("date", { required: true })}
-                className="h-10 text-sm"
+                className="h-10 text-sm bg-background border-border"
               />
             </div>
           </div>
 
-          {/* পার্টি সার্চেবল ড্রপডাউন — শুধু Customer_Collection বা Supplier_Payment এ */}
           {showPartyDropdown && (
             <div>
-              <label className="text-xs text-gray-600 mb-1 block">
+              <label className="text-xs text-foreground mb-1 block">
                 {selectedCategory === "Customer_Collection"
                   ? "কাস্টমার"
                   : "সাপ্লায়ার"}{" "}
@@ -214,103 +193,86 @@ export default function CashbookModal({ isOpen, onClose, type }) {
                   <Select
                     {...field}
                     options={partyOptions}
-                    placeholder="নাম বা মোবাইল নম্বর লিখুন..."
+                    placeholder="নাম বা মোবাইল নম্বর..."
                     isClearable
                     noOptionsMessage={() =>
                       filteredParties.length === 0
                         ? "কোনো বকেয়া নেই"
                         : "পাওয়া যায়নি"
                     }
-                    className="text-sm"
                     styles={{
-                      control: (base, state) => ({
+                      control: (base) => ({
                         ...base,
                         minHeight: "40px",
                         borderRadius: "0.5rem",
+                        backgroundColor: "var(--color-background)",
                         borderColor: errors.partyId
-                          ? "#ef4444"
-                          : state.isFocused
-                            ? "#3b82f6"
-                            : "#e2e8f0",
-                        boxShadow: state.isFocused
-                          ? "0 0 0 2px rgba(59,130,246,0.3)"
-                          : "none",
+                          ? "var(--color-destructive)"
+                          : "var(--color-border)",
+                      }),
+                      menu: (base) => ({
+                        ...base,
+                        backgroundColor: "var(--color-card)",
+                        zIndex: 50,
+                      }),
+                      option: (base, state) => ({
+                        ...base,
+                        backgroundColor: state.isFocused
+                          ? "var(--color-muted)"
+                          : "transparent",
+                        color: "var(--color-foreground)",
+                      }),
+                      singleValue: (base) => ({
+                        ...base,
+                        color: "var(--color-foreground)",
                       }),
                     }}
                   />
                 )}
               />
               {errors.partyId && (
-                <p className="text-[11px] text-red-500 mt-1">
+                <p className="text-[11px] text-destructive mt-1">
                   {errors.partyId.message}
-                </p>
-              )}
-              {/* বকেয়া কেউ না থাকলে সহায়ক বার্তা */}
-              {partyOptions.length === 0 && (
-                <p className="text-[11px] text-amber-500 mt-1">
-                  {selectedCategory === "Customer_Collection"
-                    ? "বকেয়া আছে এমন কোনো কাস্টমার নেই।"
-                    : "বকেয়া আছে এমন কোনো সাপ্লায়ার নেই।"}
                 </p>
               )}
             </div>
           )}
 
-          {/* মেমো / রেফারেন্স নম্বর — Manual Input (ঐচ্ছিক) */}
           <div>
-            <label className="text-xs text-gray-600 mb-1 block">
-              মেমো / রেফারেন্স নং{" "}
-              <span className="text-gray-400">(ঐচ্ছিক)</span>
-            </label>
-            <Input
-              type="text"
-              {...register("referenceNo")}
-              placeholder="যেমন: INV-001 বা MEM-045"
-              className="h-10 text-sm"
-            />
-          </div>
-
-          {/* টাকার পরিমাণ */}
-          <div>
-            <label className="text-xs text-gray-600 mb-1 block">
+            <label className="text-xs text-foreground mb-1 block">
               পরিমাণ (টাকা) *
             </label>
             <Input
               type="number"
               step="any"
-              {...register("amount", {
-                required: "পরিমাণ অবশ্যই দিতে হবে",
-                min: { value: 1, message: "পরিমাণ ১ এর কম হতে পারবে না" },
-              })}
+              {...register("amount", { required: "পরিমাণ আবশ্যক" })}
               placeholder="0.00"
-              className="h-10 text-sm text-lg font-semibold"
+              className="h-10 text-sm font-semibold bg-background border-border"
             />
             {errors.amount && (
-              <p className="text-[11px] text-red-500 mt-1">
+              <p className="text-[11px] text-destructive mt-1">
                 {errors.amount.message}
               </p>
             )}
           </div>
 
-          {/* নোট */}
           <div>
-            <label className="text-xs text-gray-600 mb-1 block">
-              নোট বা বিবরণ <span className="text-gray-400">(ঐচ্ছিক)</span>
+            <label className="text-xs text-foreground mb-1 block">
+              নোট বা বিবরণ{" "}
+              <span className="text-muted-foreground">(ঐচ্ছিক)</span>
             </label>
             <textarea
               {...register("note")}
-              placeholder="বিস্তারিত লিখুন..."
               rows={3}
-              className="w-full px-3 py-2 rounded-lg border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
+              className="w-full px-3 py-2 rounded-lg border border-border bg-background text-foreground text-sm focus:ring-1 focus:ring-primary resize-none"
             />
           </div>
 
-          {/* বাটনসমূহ */}
           <div className="flex gap-3 mt-6">
             <Button
               type="button"
               variant="outline"
-              className="flex-1"
+              className="flex-1 border-border"
               onClick={onClose}
             >
               বাতিল
@@ -318,11 +280,7 @@ export default function CashbookModal({ isOpen, onClose, type }) {
             <Button
               type="submit"
               disabled={mutation.isPending || !isValid}
-              className={`flex-[2] text-white transition-opacity ${
-                isIncome
-                  ? "bg-[#2ecc71] hover:bg-[#27ae60]"
-                  : "bg-[#e74c3c] hover:bg-[#c0392b]"
-              } ${!isValid || mutation.isPending ? "opacity-50 cursor-not-allowed" : ""}`}
+              className={`flex-[2] text-white ${isIncome ? "bg-emerald-600 hover:bg-emerald-700" : "bg-destructive hover:bg-destructive/90"}`}
             >
               {mutation.isPending ? "সেভ হচ্ছে..." : "সেভ করুন"}
             </Button>

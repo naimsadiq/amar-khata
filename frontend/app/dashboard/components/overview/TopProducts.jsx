@@ -3,94 +3,65 @@ import { useQueries } from "@tanstack/react-query";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
+import { ErrorState } from "@/components/ui/error-state";
 import api from "@/lib/axiosInstance";
 
 export default function TopProducts() {
   const results = useQueries({
     queries: [
-      {
-        queryKey: ["topProducts"],
-        queryFn: async () =>
-          (await api.get("/api/dashboard/top-products")).data,
-      },
-      {
-        queryKey: ["stockAlerts"],
-        queryFn: async () =>
-          (await api.get("/api/dashboard/stock-alerts")).data,
-      },
+      { queryKey: ["topProducts"], queryFn: async () => (await api.get("/api/dashboard/top-products")).data },
+      { queryKey: ["stockAlerts"], queryFn: async () => (await api.get("/api/dashboard/stock-alerts")).data },
     ],
   });
 
   const [productsQuery, alertsQuery] = results;
   const isLoading = productsQuery.isLoading || alertsQuery.isLoading;
+  const isError = productsQuery.isError || alertsQuery.isError;
 
-  if (isLoading) return <Skeleton className="h-[400px] w-full" />;
+  if (isLoading) return <Skeleton className="h-[400px] w-full rounded-xl bg-card border border-border" />;
+  if (isError) return <Card className="h-[400px] flex items-center justify-center"><ErrorState message="ডেটা লোড করতে সমস্যা!" /></Card>;
 
   const products = productsQuery.data || [];
   const alerts = alertsQuery.data || [];
-
-  // সবচেয়ে বেশি বিক্রি হওয়া পরিমাণের সাপেক্ষে প্রগ্রেস বার বের করা
   const maxSold = Math.max(...products.map((p) => p.totalQuantitySold), 1);
 
   return (
-    <Card>
+    <Card className="shadow-sm">
       <CardHeader>
-        <div className="flex justify-between items-center">
-          <CardTitle className="text-gray-700">শীর্ষ পণ্য</CardTitle>
-        </div>
+        <CardTitle className="text-foreground">শীর্ষ পণ্য</CardTitle>
       </CardHeader>
       <CardContent>
+        {/* Top Products */}
         <div className="space-y-4">
-          {products.length === 0 ? (
-            <p className="text-sm text-gray-500">কোনো ডেটা নেই</p>
-          ) : null}
+          {products.length === 0 && <p className="text-sm text-muted-foreground">কোনো ডেটা নেই</p>}
           {products.map((product, index) => (
             <div key={product._id} className="flex items-center gap-4 text-sm">
-              <span className="font-bold text-gray-400">#{index + 1}</span>
+              <span className="font-bold text-muted-foreground w-4">#{index + 1}</span>
               <div className="flex-1">
-                <p className="font-medium text-gray-700">{product.name}</p>
-                <div className="w-full bg-gray-100 rounded-full h-1.5 mt-1.5">
-                  <div
-                    className="bg-green-500 h-1.5 rounded-full"
-                    style={{
-                      width: `${(product.totalQuantitySold / maxSold) * 100}%`,
-                    }}
-                  ></div>
+                <p className="font-medium text-foreground">{product.name}</p>
+                <div className="w-full bg-muted rounded-full h-1.5 mt-1.5 overflow-hidden">
+                  <div className="bg-primary h-1.5 rounded-full" style={{ width: `${(product.totalQuantitySold / maxSold) * 100}%` }}></div>
                 </div>
               </div>
-              <span className="font-bold text-gray-700">
-                {product.totalQuantitySold} টি
-              </span>
+              <span className="font-bold text-foreground">{product.totalQuantitySold} টি</span>
             </div>
           ))}
         </div>
 
-        <hr className="my-6" />
+        <hr className="my-6 border-border" />
 
+        {/* Stock Alerts */}
         <div>
-          <h4 className="text-sm font-bold text-red-500 mb-3 flex items-center gap-2">
-            স্টক সতর্কতা ⚠️
-          </h4>
+          <h4 className="text-sm font-bold text-destructive mb-3 flex items-center gap-2">স্টক সতর্কতা ⚠️</h4>
           <div className="space-y-3">
-            {alerts.length === 0 ? (
-              <p className="text-sm text-gray-500">সব স্টক ঠিক আছে</p>
-            ) : null}
+            {alerts.length === 0 && <p className="text-sm text-muted-foreground">সব স্টক ঠিক আছে</p>}
             {alerts.map((alert) => (
-              <div
-                key={alert._id}
-                className="flex justify-between items-center text-sm"
-              >
+              <div key={alert._id} className="flex justify-between items-center text-sm p-2 rounded-lg bg-destructive/5 border border-destructive/10">
                 <div className="flex items-center gap-2">
-                  <Badge variant="destructive" className="text-[10px]">
-                    Low Stock
-                  </Badge>
-                  <span className="font-medium text-gray-700">
-                    {alert.name}
-                  </span>
+                  <Badge variant="destructive" className="text-[10px] px-1.5 py-0">Low</Badge>
+                  <span className="font-medium text-foreground">{alert.name}</span>
                 </div>
-                <span className="font-bold text-red-600">
-                  মাত্র {alert.stockQuantity} টি
-                </span>
+                <span className="font-bold text-destructive">মাত্র {alert.stockQuantity} টি</span>
               </div>
             ))}
           </div>

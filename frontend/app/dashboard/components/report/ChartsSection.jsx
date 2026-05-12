@@ -1,27 +1,25 @@
 export default function ChartsSection({ barData, donutData }) {
-  // ডাইনামিক Max Value বের করা (সবচেয়ে বড় ভ্যালুর উপর নির্ভর করে বার হাইট হবে)
   const allValues = [...(barData?.income || []), ...(barData?.expense || [])];
   const maxVal = allValues.length > 0 ? Math.max(...allValues, 10) : 100;
 
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-3 gap-[16px] mb-[22px]">
+    <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 md:gap-6 mb-6">
       {/* Bar Chart */}
-      <div className="lg:col-span-2 bg-white rounded-[14px] p-[20px] shadow-[0_2px_12px_rgba(26,34,54,0.07)] border border-[#e4e8f0]">
-        <div className="text-[14px] font-bold mb-[16px] flex justify-between items-center text-[#1a2236]">
+      <div className="lg:col-span-2 bg-card rounded-xl p-5 shadow-sm border border-border">
+        <div className="text-sm font-bold mb-4 flex justify-between items-center text-foreground">
           আয় ও ব্যয়ের তুলনা
-          <div className="flex gap-[14px]">
-            <div className="flex items-center gap-[5px] text-[11px] text-[#7a8aaa]">
-              <div className="w-[10px] h-[10px] rounded-full bg-[#2ea86b]"></div>{" "}
-              আয়
+          <div className="flex gap-3">
+            <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+              <div className="w-2.5 h-2.5 rounded-full bg-primary"></div> আয়
             </div>
-            <div className="flex items-center gap-[5px] text-[11px] text-[#7a8aaa]">
-              <div className="w-[10px] h-[10px] rounded-full bg-[#f87171]"></div>{" "}
+            <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+              <div className="w-2.5 h-2.5 rounded-full bg-destructive"></div>{" "}
               ব্যয়
             </div>
           </div>
         </div>
 
-        <div className="flex items-end gap-[10px] h-[160px] px-[4px] overflow-x-auto w-full">
+        <div className="flex items-end gap-2 md:gap-3 h-40 overflow-x-auto w-full hide-scrollbar">
           {barData?.months.map((m, i) => {
             const inH = Math.round(((barData.income[i] || 0) / maxVal) * 140);
             const exH = Math.round(((barData.expense[i] || 0) / maxVal) * 140);
@@ -29,26 +27,22 @@ export default function ChartsSection({ barData, donutData }) {
             return (
               <div
                 key={i}
-                className="flex-1 flex flex-col items-center gap-[4px] h-full justify-end min-w-[30px]"
+                className="flex-1 flex flex-col items-center gap-1 h-full justify-end min-w-[32px]"
               >
-                <div className="flex gap-[3px] items-end">
+                <div className="flex gap-1 items-end">
                   <div
-                    className={`w-[14px] rounded-t-[4px] transition-opacity hover:opacity-80 bg-[#2ea86b]`}
+                    className="w-3 md:w-4 rounded-t-sm transition-opacity hover:opacity-80 bg-primary"
                     style={{ height: `${inH}px`, opacity: isActive ? 1 : 0.55 }}
                     title={`আয়: ৳${barData.income[i]}হাজার`}
                   ></div>
                   <div
-                    className={`w-[14px] rounded-t-[4px] transition-opacity hover:opacity-80 bg-[#f87171]`}
+                    className="w-3 md:w-4 rounded-t-sm transition-opacity hover:opacity-80 bg-destructive"
                     style={{ height: `${exH}px`, opacity: isActive ? 1 : 0.55 }}
                     title={`ব্যয়: ৳${barData.expense[i]}হাজার`}
                   ></div>
                 </div>
                 <div
-                  className="text-[10px] text-center"
-                  style={{
-                    fontWeight: isActive ? 700 : 400,
-                    color: isActive ? "#2ea86b" : "#7a8aaa",
-                  }}
+                  className={`text-[10px] md:text-xs text-center ${isActive ? "font-bold text-primary" : "text-muted-foreground"}`}
                 >
                   {m}
                 </div>
@@ -59,29 +53,26 @@ export default function ChartsSection({ barData, donutData }) {
       </div>
 
       {/* Donut Chart */}
-      <div className="bg-white rounded-[14px] p-[20px] shadow-[0_2px_12px_rgba(26,34,54,0.07)] border border-[#e4e8f0]">
-        <div className="text-[14px] font-bold mb-[16px] text-[#1a2236]">
+      <div className="bg-card rounded-xl p-5 shadow-sm border border-border flex flex-col">
+        <div className="text-sm font-bold mb-4 text-foreground">
           ব্যয়ের বিভাগ
         </div>
-        <div className="flex flex-col items-center">
-          <svg className="w-[130px] h-[130px] mb-[14px]" viewBox="0 0 100 100">
+        <div className="flex flex-col items-center justify-center flex-1">
+          <svg className="w-32 h-32 mb-4" viewBox="0 0 100 100">
             <circle
               cx="50"
               cy="50"
               r="35"
               fill="none"
-              stroke="#e4e8f0"
+              stroke="var(--color-border)"
               strokeWidth="14"
             />
-
-            {/* Note: In a real advanced chart, these strokeDasharrays would be calculated dynamically based on data. 
-                For now keeping your design intact. */}
             <circle
               cx="50"
               cy="50"
               r="35"
               fill="none"
-              stroke="#2ea86b"
+              stroke="var(--color-primary)"
               strokeWidth="14"
               strokeDasharray="92 128"
               strokeDashoffset="35"
@@ -92,7 +83,7 @@ export default function ChartsSection({ barData, donutData }) {
               cy="50"
               r="35"
               fill="none"
-              stroke="#3b82f6"
+              stroke="var(--color-chart-2)"
               strokeWidth="14"
               strokeDasharray="62 158"
               strokeDashoffset="-57"
@@ -103,7 +94,7 @@ export default function ChartsSection({ barData, donutData }) {
               cy="50"
               r="35"
               fill="none"
-              stroke="#f59e0b"
+              stroke="var(--color-chart-3)"
               strokeWidth="14"
               strokeDasharray="40 180"
               strokeDashoffset="-119"
@@ -114,7 +105,7 @@ export default function ChartsSection({ barData, donutData }) {
               cy="50"
               r="35"
               fill="none"
-              stroke="#f87171"
+              stroke="var(--color-destructive)"
               strokeWidth="14"
               strokeDasharray="26 194"
               strokeDashoffset="-159"
@@ -126,24 +117,31 @@ export default function ChartsSection({ barData, donutData }) {
               y="47"
               textAnchor="middle"
               fontSize="10"
-              fill="#1a2236"
-              fontWeight="700"
+              fill="currentColor"
+              className="text-foreground font-bold"
             >
               মোট
             </text>
-            <text x="50" y="57" textAnchor="middle" fontSize="8" fill="#7a8aaa">
+            <text
+              x="50"
+              y="57"
+              textAnchor="middle"
+              fontSize="8"
+              fill="currentColor"
+              className="text-muted-foreground"
+            >
               ব্যয়
             </text>
           </svg>
-          <div className="w-full">
+          <div className="w-full space-y-2">
             {donutData?.map((d) => (
               <div
                 key={d.id}
-                className="flex items-center justify-between py-[5px] border-b border-[#e4e8f0] last:border-none text-[12px]"
+                className="flex items-center justify-between pb-2 border-b border-border last:border-none last:pb-0 text-xs"
               >
-                <div className="flex items-center gap-[7px] text-[#1a2236]">
+                <div className="flex items-center gap-2 text-foreground">
                   <div
-                    className="w-[9px] h-[9px] rounded-full"
+                    className="w-2.5 h-2.5 rounded-full"
                     style={{ backgroundColor: d.color }}
                   ></div>
                   {d.label}
@@ -154,7 +152,7 @@ export default function ChartsSection({ barData, donutData }) {
               </div>
             ))}
             {donutData?.length === 0 && (
-              <div className="text-center text-gray-400 text-xs mt-2">
+              <div className="text-center text-muted-foreground text-xs mt-2">
                 কোনো ব্যয়ের ডাটা নেই
               </div>
             )}

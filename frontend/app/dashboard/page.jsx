@@ -19,7 +19,8 @@ export default function OverviewPage() {
   const [isPurchaseModalOpen, setIsPurchaseModalOpen] = useState(false);
 
   return (
-    <div className="flex-1 min-w-0 space-y-4 p-4 md:p-8 pt-6 bg-slate-50 min-h-screen">
+    <div className="flex-1 w-full space-y-4 md:space-y-6">
+      {/* Quick Actions (Mobile Responsive) */}
       <QuickActions
         setIsModalOpen={setIsModalOpen}
         setTransactionType={setTransactionType}
@@ -28,37 +29,40 @@ export default function OverviewPage() {
         onPurchaseClick={() => setIsPurchaseModalOpen(true)}
       />
 
-      <div className="mt-6 space-y-4">
-        {/* StatCards নিজেই নিজের ডেটা ফেচ করবে */}
+      <div className="space-y-4">
         <StatCards />
       </div>
 
-      <div className="mt-6 grid gap-6 grid-cols-1 lg:grid-cols-3">
-        {/* Left Side */}
-        <div className="lg:col-span-2 grid gap-6 grid-cols-1 md:grid-cols-2 min-w-0">
-          <WeeklySalesChart />
-          <TopProducts />
+      {/* Grid Layout Update for better responsiveness */}
+      <div className="grid gap-4 md:gap-6 grid-cols-1 xl:grid-cols-3">
+        {/* Left Side (Takes 2 columns on extra large screens) */}
+        <div className="xl:col-span-2 grid gap-4 md:gap-6 grid-cols-1 lg:grid-cols-2">
+          <div className="min-w-0">
+            <WeeklySalesChart />
+          </div>
+          <div className="min-w-0">
+            <TopProducts />
+          </div>
         </div>
 
-        {/* Right Side */}
-        <div className="lg:col-span-1 flex flex-col gap-6 min-w-0">
+        {/* Right Side (Takes 1 column on extra large screens) */}
+        <div className="xl:col-span-1 flex flex-col gap-4 md:gap-6 min-w-0">
           <RecentTransactions />
           <MonthlyProfit />
         </div>
       </div>
 
+      {/* Modals */}
       <AddModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} />
       <CashbookModal
         isOpen={isCashbookModalOpen}
         onClose={() => setIsCashbookModalOpen(false)}
         type={transactionType}
       />
-
       <AddProductModal
         isOpen={isAddProductModalOpen}
         onClose={() => setIsAddProductModalOpen(false)}
       />
-
       <PurchaseModal
         isOpen={isPurchaseModalOpen}
         onClose={() => setIsPurchaseModalOpen(false)}

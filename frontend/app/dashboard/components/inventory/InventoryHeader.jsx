@@ -1,30 +1,35 @@
 import { Button } from "@/components/ui/button";
 import { Plus, ShoppingBag } from "lucide-react";
 
-export default function InventoryHeader({ totalProducts, onAddClick, onPurchaseClick }) {
+export default function InventoryHeader({
+  totalProducts,
+  onAddClick,
+  onPurchaseClick,
+}) {
   return (
     <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
       <div className="flex items-center gap-2">
-        <h1 className="text-xl md:text-2xl font-bold text-slate-800">
+        <h1 className="text-xl md:text-2xl font-bold text-foreground">
           ইনভেন্টরি
         </h1>
-        <span className="text-sm text-slate-500 mt-1">
+        <span className="text-sm text-muted-foreground mt-1">
           মোট {totalProducts} পণ্য
         </span>
       </div>
-      <div className="flex items-center gap-3 w-full sm:w-auto">
+
+      {/* মোবাইল এবং ডেস্কটপ উভয় ভার্সনে বাটনগুলো এখন একই স্টাইলের */}
+      <div className="flex flex-row w-full sm:w-auto gap-2">
         <Button
-          onClick={onAddClick} 
-          className="w-full sm:w-auto bg-[#2ecc71] hover:bg-[#27ae60] text-white gap-2"
+          onClick={onAddClick}
+          className="flex-1 sm:flex-none bg-primary hover:bg-primary/90 text-primary-foreground gap-2 h-11"
         >
-          <Plus size={16} /> নতুন পণ্য যোগ
+          <Plus size={16} /> নতুন পণ্য
         </Button>
-        
-        {/* মাল কিনলাম বাটনে onClick ইভেন্ট যুক্ত করা হয়েছে */}
-        <Button 
-          variant="outline" 
-          onClick={onPurchaseClick} 
-          className="w-full sm:w-auto gap-2 border-blue-500 text-blue-600 hover:bg-blue-50"
+
+        <Button
+          variant="outline"
+          onClick={onPurchaseClick}
+          className="flex-1 sm:flex-none gap-2 border-primary/20 text-primary hover:bg-primary/10 bg-card h-11"
         >
           <ShoppingBag size={16} /> মাল কিনলাম
         </Button>

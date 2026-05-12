@@ -17,7 +17,16 @@ const authMiddleware = require("./middleware/authMiddleware");
 // ======================
 // MIDDLEWARE
 // ======================
-app.use(cors({ origin: ["http://localhost:3000"], credentials: true }));
+const allowedOrigins = [
+  "http://localhost:3000",
+  "https://your-frontend-project.vercel.app" 
+];
+
+app.use(cors({
+  origin: allowedOrigins,
+  credentials: true
+}));
+// app.use(cors());
 app.use(express.json());
 app.use(cookieParser());
 // ======================
@@ -279,6 +288,106 @@ async function run() {
       } catch (error) {
         console.error("❌ Error:", error);
         res.status(500).send({ message: "Server error", error: error.message });
+      }
+    });
+
+    // ইউজারের প্রোফাইল পাওয়ার API
+    // ইউজারের প্রোফাইল পাওয়ার API
+    app.get("/api/users/profile", async (req, res) => {
+      const token = req.cookies.token;
+
+      if (!token)
+        return res
+          .status(401)
+          .send({ message: "No token found, please login" });
+
+      try {
+        const decoded = jwt.verify(token, process.env.JWT_SECRET);
+        const userEmail = decoded.email;
+
+        // ইউজার কালেকশন থেকে তথ্য নেওয়া (এখানে 'email' ফিল্ডই আছে আপনার ইউজার ডাটাতে)
+        const user = await userCollection.findOne(
+          { email: userEmail },
+          { projection: { pin: 0 } }, // সিকিউরিটির জন্য pin বাদ দেওয়া হয়েছে
+        );
+
+        if (!user) return res.status(404).send({ message: "User not found" });
+
+        // অন্যান্য কালেকশন থেকে Stats কাউন্ট করা (আপনার ডাটাবেস ফিল্ড অনুযায়ী আপডেট করা হলো)
+
+        // ১. মোট বিক্রয় (transactions কালেকশনে ফিল্ডের নাম 'userEmail' এবং 'type')
+        const totalSales = await transactionsCollection.countDocuments({
+          userEmail: userEmail,
+          type: "sale",
+        });
+
+        // ২. গ্রাহক সংখ্যা (parties কালেকশনে ফিল্ডের নাম 'userEmail' এবং 'type')
+        const customers = await partiesCollection.countDocuments({
+          userEmail: userEmail,
+          type: "customer",
+        });
+
+        // ৩. পণ্য মজুদ (products কালেকশনে ফিল্ডের নাম 'userEmail')
+        const inventory = await productsCollection.countDocuments({
+          userEmail: userEmail,
+        });
+
+        // ৪. কাশবুক (আপনার স্যাম্পল ডাটায় status: 'pending' নামে কিছু নেই, তাই আপাতত শুধু userEmail দিয়ে সব কাউন্ট করা হলো। যদি নির্দিষ্ট কোনো শর্ত থাকে, তবে সেটা যুক্ত করে নিবেন)
+        const pendingCash = await cashbookCollection.countDocuments({
+          userEmail: userEmail,
+          // status: "pending"  <-- আপনার স্কিমায় যদি পেন্ডিং এর কোনো ফিল্ড থাকে তবে এটা আনকমেন্ট করে ঠিক করে নিবেন
+        });
+
+        // সব ডাটা একসাথে পাঠানো
+        res.send({
+          ...user,
+          stats: {
+            totalSales: totalSales || 0,
+            customers: customers || 0,
+            inventory: inventory || 0,
+            pendingCash: pendingCash || 0,
+          },
+        });
+      } catch (err) {
+        res.status(401).send({ message: "Invalid token" });
+      }
+    });
+
+    // ইউজারের প্রোফাইল আপডেট করার API
+    app.put("/api/users/profile", async (req, res) => {
+      const token = req.cookies.token;
+
+      if (!token)
+        return res
+          .status(401)
+          .send({ message: "No token found, please login" });
+
+      try {
+        const decoded = jwt.verify(token, process.env.JWT_SECRET);
+        const userEmail = decoded.email;
+
+        // ফ্রন্টএন্ড থেকে আসা আপডেটেড ডাটা
+        const { name, phone, businessName, dob, gender, address } = req.body;
+
+        const filter = { email: userEmail };
+        const updateDoc = {
+          $set: {
+            name: name,
+            phone: phone,
+            businessName: businessName, // নতুন যুক্ত করা হয়েছে
+            dob: dob, // ডাটাবেসে না থাকলে নতুন তৈরি হবে
+            gender: gender, // ডাটাবেসে না থাকলে নতুন তৈরি হবে
+            address: address, // ডাটাবেসে না থাকলে নতুন তৈরি হবে
+            updatedAt: new Date(),
+          },
+        };
+
+        const result = await userCollection.updateOne(filter, updateDoc);
+        res.send({ message: "Profile updated successfully", result });
+      } catch (err) {
+        res
+          .status(500)
+          .send({ message: "Failed to update profile", error: err.message });
       }
     });
 
@@ -886,7 +995,7 @@ async function run() {
             .aggregate([
               { $match: { businessId: user.businessId } },
               { $sort: { date: -1, createdAt: -1 } },
-              { $limit: 6 },
+              { $limit: 5 },
               {
                 $lookup: {
                   from: "parties", // আপনার ডাটাবেসের কালেকশনের সঠিক নাম দিবেন
@@ -955,7 +1064,7 @@ async function run() {
             $expr: { $lte: ["$stockQuantity", "$lowStockAlert"] }, // stock <= alert
           })
           .sort({ stockQuantity: 1 }) // যার স্টক সবচেয়ে কম সে উপরে
-          .limit(6)
+          .limit(5)
           .project({ name: 1, category: 1, stockQuantity: 1, lowStockAlert: 1 })
           .toArray();
 

@@ -2,8 +2,10 @@
 import React from "react";
 import { useRouter } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
-import { ArrowLeft, Loader2 } from "lucide-react";
+import { ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Skeleton } from "@/components/ui/skeleton";
+import { ErrorState } from "@/components/ui/error-state";
 import ContactDetail from "../../components/parties/ContactDetail";
 import api from "@/lib/axiosInstance";
 
@@ -11,74 +13,61 @@ export default function PartyDetailPage({ params }) {
   const router = useRouter();
   const { id } = React.use(params);
 
-  // ১. পার্টির বিস্তারিত ডাটা ফেচিং
   const {
     data: contact,
     isLoading: isContactLoading,
     isError: isContactError,
   } = useQuery({
     queryKey: ["party", id],
-    queryFn: async () => {
-      const res = await api.get(`/api/parties/${id}`);
-      return res.data;
-    },
+    queryFn: async () => (await api.get(`/api/parties/${id}`)).data,
     enabled: !!id,
   });
 
-  // ২. পার্টির লেনদেনের (transactions) ডাটা ফেচিং
   const {
     data: transactions,
     isLoading: isTxnLoading,
     isError: isTxnError,
   } = useQuery({
     queryKey: ["transactions", id],
-    queryFn: async () => {
-      const res = await api.get(`/api/transactions/${id}`);
-      return res.data;
-    },
+    queryFn: async () => (await api.get(`/api/transactions/${id}`)).data,
     enabled: !!id,
   });
 
-  if (isContactLoading) {
+  if (isContactLoading)
     return (
-      <div className="flex items-center justify-center h-screen bg-[#f5f4f0] font-['Hind_Siliguri']">
-        <Loader2 className="animate-spin text-[#1a7a4a] h-8 w-8" />
+      <div className="p-4 md:p-6">
+        <Skeleton className="h-[500px] w-full rounded-2xl bg-card border-border" />
       </div>
     );
-  }
-
-  if (isContactError || !contact) {
+  if (isContactError || !contact)
     return (
-      <div className="flex items-center justify-center h-screen bg-[#f5f4f0] text-red-500 font-['Hind_Siliguri']">
-        দুঃখিত, এই গ্রাহক বা সাপ্লায়ারকে খুঁজে পাওয়া যায়নি।
+      <div className="p-4">
+        <ErrorState message="গ্রাহক বা সাপ্লায়ারকে খুঁজে পাওয়া যায়নি।" />
       </div>
     );
-  }
 
   return (
-    <div className="p-4 md:p-6 bg-[#f5f4f0] min-h-screen font-['Hind_Siliguri']">
-      <div className="max-w-4xl mx-auto space-y-6">
-        {/* Page Header */}
+    <div className="w-full h-full p-4 md:p-6">
+      <div className="max-w-5xl mx-auto space-y-6">
         <div className="flex items-center gap-4">
           <Button
             variant="outline"
             size="icon"
-            className="h-9 w-9 bg-white rounded-full border-gray-200 shadow-sm"
+            className="h-9 w-9 rounded-full"
             onClick={() => router.back()}
           >
-            <ArrowLeft className="h-4 w-4 text-gray-700" />
+            <ArrowLeft className="h-4 w-4" />
           </Button>
           <div>
-            <h1 className="text-xl md:text-2xl font-bold text-gray-800">
+            <h1 className="text-xl md:text-2xl font-bold text-foreground">
               বিস্তারিত তথ্য
             </h1>
-            <p className="text-sm text-gray-500">
+            <p className="text-sm text-muted-foreground">
               গ্রাহক/সাপ্লায়ারের প্রোফাইল ও লেনদেনের হিসাব
             </p>
           </div>
         </div>
 
-        {/* Combined Contact Detail & Transaction Table */}
         <ContactDetail
           contact={contact}
           transactions={transactions}

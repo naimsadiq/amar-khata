@@ -2,13 +2,14 @@
 import { useQuery } from "@tanstack/react-query";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
+import { ErrorState } from "@/components/ui/error-state";
 import api from "@/lib/axiosInstance";
 
 const formatCurrency = (value) =>
   `৳${new Intl.NumberFormat("en-IN").format(value || 0)}`;
 
 export default function StatCards() {
-  const { data, isLoading, isError } = useQuery({
+  const { data, isLoading, isError, refetch } = useQuery({
     queryKey: ["dashboardSummary"],
     queryFn: async () => {
       const res = await api.get("/api/dashboard/summary");
@@ -20,50 +21,51 @@ export default function StatCards() {
     return (
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         {[...Array(4)].map((_, i) => (
-          <Skeleton key={i} className="h-28 w-full rounded-xl" />
+          <Skeleton
+            key={i}
+            className="h-28 w-full rounded-xl bg-card border border-border"
+          />
         ))}
       </div>
     );
   }
 
   if (isError)
-    return <div className="text-red-500">ডেটা লোড করতে সমস্যা হয়েছে!</div>;
+    return (
+      <ErrorState message="ডেটা লোড করতে সমস্যা হয়েছে!" onRetry={refetch} />
+    );
 
   const stats = [
-    {
-      label: "মোট ব্যালেন্স",
-      value: formatCurrency(data.totalBalance),
-      color: "text-blue-600",
-    },
+    { label: "মোট ব্যালেন্স", value: data.totalBalance, color: "text-primary" },
     {
       label: "হাতে নগদ",
-      value: formatCurrency(data.cashInHand),
-      color: "text-green-600",
+      value: data.cashInHand,
+      color: "text-emerald-600 dark:text-emerald-400",
     },
     {
       label: "মোট পাওনা (Customer)",
-      value: formatCurrency(data.totalReceivable),
-      color: "text-orange-600",
+      value: data.totalReceivable,
+      color: "text-amber-600 dark:text-amber-500",
     },
     {
       label: "মোট দেনা (Supplier)",
-      value: formatCurrency(data.totalPayable),
-      color: "text-red-600",
+      value: data.totalPayable,
+      color: "text-destructive",
     },
   ];
 
   return (
     <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
       {stats.map((stat, index) => (
-        <Card key={index}>
+        <Card key={index} className="hover:shadow-md transition-shadow">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium text-gray-500">
+            <CardTitle className="text-sm font-medium text-muted-foreground">
               {stat.label}
             </CardTitle>
           </CardHeader>
           <CardContent>
             <div className={`text-2xl font-bold ${stat.color}`}>
-              {stat.value}
+              {formatCurrency(stat.value)}
             </div>
           </CardContent>
         </Card>

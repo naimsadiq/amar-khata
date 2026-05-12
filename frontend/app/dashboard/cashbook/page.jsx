@@ -7,12 +7,13 @@ import SummaryCards from "../components/cashbook/SummaryCards";
 import TransactionTable from "../components/cashbook/TransactionTable";
 import CashbookModal from "../components/cashbook/CashbookModal";
 import { Skeleton } from "@/components/ui/skeleton";
+import { ErrorState } from "@/components/ui/error-state";
 
 export default function CashbookPage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [transactionType, setTransactionType] = useState("IN");
 
-  const { data, isLoading } = useQuery({
+  const { data, isLoading, isError, refetch } = useQuery({
     queryKey: ["cashbook"],
     queryFn: async () => {
       const res = await api.get("/api/cashbook");
@@ -37,7 +38,7 @@ export default function CashbookPage() {
   });
 
   return (
-    <div className="flex flex-col min-h-screen bg-[#f5f7fa] w-full font-['Hind_Siliguri'] p-4 md:p-6">
+    <div className="flex flex-col h-full w-full p-4 md:p-6 space-y-6">
       <ActionButtons
         onCashIn={() => {
           setTransactionType("IN");
@@ -50,16 +51,21 @@ export default function CashbookPage() {
       />
 
       {isLoading ? (
-        <div className="space-y-6 mt-6">
+        <div className="space-y-6">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <Skeleton className="h-[120px] rounded-xl" />
-            <Skeleton className="h-[120px] rounded-xl" />
-            <Skeleton className="h-[120px] rounded-xl" />
+            <Skeleton className="h-[120px] rounded-xl bg-card border border-border" />
+            <Skeleton className="h-[120px] rounded-xl bg-card border border-border" />
+            <Skeleton className="h-[120px] rounded-xl bg-card border border-border" />
           </div>
-          <Skeleton className="h-[400px] rounded-xl" />
+          <Skeleton className="h-[400px] rounded-xl bg-card border border-border" />
         </div>
+      ) : isError ? (
+        <ErrorState
+          message="ক্যাশবুকের ডাটা লোড করতে সমস্যা হয়েছে!"
+          onRetry={refetch}
+        />
       ) : (
-        <div className="mt-6 space-y-6">
+        <div className="space-y-6">
           <SummaryCards data={data?.summary} />
           <TransactionTable transactions={data?.transactions || []} />
         </div>

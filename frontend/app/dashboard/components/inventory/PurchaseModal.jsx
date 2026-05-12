@@ -34,12 +34,11 @@ export default function PurchaseModal({ isOpen, onClose }) {
       unit: "",
       buyPrice: "",
       sellPrice: "",
-      discount: 0, // নতুন: ডিসকাউন্ট
-      paidAmount: 0, // নতুন: নগদ পরিশোধ
+      discount: 0,
+      paidAmount: 0, 
     },
   });
 
-  // ডাটা ফেচিং (আগের মতোই)
   const { data: products = [], isLoading: isLoadingProducts } = useQuery({
     queryKey: ["inventory"],
     queryFn: async () => {
@@ -58,7 +57,6 @@ export default function PurchaseModal({ isOpen, onClose }) {
     enabled: isOpen,
   });
 
-  // ফিল্টারিং
   const categories = [...new Set(products.map((p) => p.category))];
   const suppliers = parties.filter((p) => p.type === "supplier");
   const selectedCategory = watch("category");
@@ -66,21 +64,14 @@ export default function PurchaseModal({ isOpen, onClose }) {
     (p) => p.category === selectedCategory,
   );
 
-  // অটো-ফিল লজিক
   const handleProductChange = (e) => {
     const pId = e.target.value;
     setValue("productId", pId);
 
     const selectedProd = products.find((p) => p._id === pId);
     if (selectedProd) {
-      setValue(
-        "buyPrice",
-        selectedProd.currentBuyPrice || selectedProd.buyPrice || "",
-      );
-      setValue(
-        "sellPrice",
-        selectedProd.currentSellPrice || selectedProd.sellPrice || "",
-      );
+      setValue("buyPrice", selectedProd.currentBuyPrice || selectedProd.buyPrice || "");
+      setValue("sellPrice", selectedProd.currentSellPrice || selectedProd.sellPrice || "");
       setValue("unit", selectedProd.unit || "কেজি");
     } else {
       setValue("buyPrice", "");
@@ -89,7 +80,6 @@ export default function PurchaseModal({ isOpen, onClose }) {
     }
   };
 
-  // --- রিয়েল টাইম বিল ক্যালকুলেশন লজিক ---
   const qty = Number(watch("quantity")) || 0;
   const price = Number(watch("buyPrice")) || 0;
   const discount = Number(watch("discount")) || 0;
@@ -98,9 +88,7 @@ export default function PurchaseModal({ isOpen, onClose }) {
   const subTotal = qty * price;
   const grandTotal = subTotal > 0 ? subTotal - discount : 0;
   const dueAmount = grandTotal > 0 ? grandTotal - paidAmount : 0;
-  // ---------------------------------------
 
-  // সাবমিট মিউটেশন
   const mutation = useMutation({
     mutationFn: async (formData) => {
       const response = await api.post("/api/purchases", formData);
@@ -116,7 +104,6 @@ export default function PurchaseModal({ isOpen, onClose }) {
       queryClient.invalidateQueries({ queryKey: ["inventory"] });
       queryClient.invalidateQueries({ queryKey: ["parties"] });
       queryClient.invalidateQueries({ queryKey: ["purchases"] });
-
       reset();
       onClose();
     },
@@ -131,12 +118,9 @@ export default function PurchaseModal({ isOpen, onClose }) {
   });
 
   const onSubmit = (data) => {
-    // ডাটাবেজ স্কিমা অনুযায়ী ডাটা ফরম্যাট করা
     const formattedData = {
       supplierId: data.supplierId,
       purchaseDate: new Date().toISOString(),
-
-      // Items array (ভবিষ্যতে একাধিক প্রোডাক্ট এক বিলে নিতে পারবেন)
       items: [
         {
           productId: data.productId,
@@ -145,55 +129,46 @@ export default function PurchaseModal({ isOpen, onClose }) {
           totalLineAmount: subTotal,
         },
       ],
-
-      // বিলের হিসাব (এই ডাটাগুলো দিয়ে ব্যাকএন্ডে সাপ্লায়ারের ডিউ আপডেট করবেন)
       subTotal: subTotal,
       discount: discount,
       grandTotal: grandTotal,
       paidAmount: paidAmount,
       dueAmount: dueAmount,
-
-      // প্রোডাক্ট মাস্টার টেবিল আপডেট করার জন্য এক্সট্রা ডাটা
       updateMasterData: {
         newSellPrice: Number(data.sellPrice),
         unit: data.unit,
       },
     };
-
-    console.log(formattedData);
-
     mutation.mutate(formattedData);
   };
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-[650px] max-h-[90vh] overflow-y-auto rounded-2xl p-6">
+      <DialogContent className="sm:max-w-[650px] max-h-[90vh] overflow-y-auto rounded-2xl p-6 bg-card border-border">
         <DialogHeader>
-          <DialogTitle className="text-xl font-bold text-slate-800">
+          <DialogTitle className="text-xl font-bold text-foreground">
             নতুন ক্রয় (Purchase Invoice)
           </DialogTitle>
-          <DialogDescription>
+          <DialogDescription className="text-muted-foreground">
             পণ্য কিনুন এবং সাপ্লায়ারের বিল আপডেট করুন।
           </DialogDescription>
         </DialogHeader>
 
         {isLoadingProducts || isLoadingParties ? (
-          <div className="py-10 text-center text-sm text-gray-500">
+          <div className="py-10 text-center text-sm text-muted-foreground">
             ডাটা লোড হচ্ছে...
           </div>
         ) : (
           <form onSubmit={handleSubmit(onSubmit)} className="mt-4 space-y-5">
             {/* সেকশন ১: বেসিক ইনফো */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 bg-slate-50 p-4 rounded-xl border border-slate-100">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 bg-muted/30 p-4 rounded-xl border border-border">
               <div className="md:col-span-2">
-                <label className="text-xs font-semibold text-gray-700 block mb-1">
+                <label className="text-xs font-semibold text-foreground block mb-1">
                   সাপ্লায়ার / মহাজন *
                 </label>
                 <select
-                  {...register("supplierId", {
-                    required: "সাপ্লায়ার নির্বাচন করুন!",
-                  })}
-                  className="w-full h-10 px-3 py-2 rounded-lg border border-slate-300 text-sm focus:ring-2 focus:ring-blue-500"
+                  {...register("supplierId", { required: "সাপ্লায়ার নির্বাচন করুন!" })}
+                  className="w-full h-10 px-3 py-2 rounded-lg border border-border bg-background text-sm focus:ring-2 focus:ring-primary"
                 >
                   <option value="">সাপ্লায়ার নির্বাচন করুন</option>
                   {suppliers.map((s) => (
@@ -203,19 +178,17 @@ export default function PurchaseModal({ isOpen, onClose }) {
                   ))}
                 </select>
                 {errors.supplierId && (
-                  <p className="text-xs text-red-500 mt-1">
-                    {errors.supplierId.message}
-                  </p>
+                  <p className="text-xs text-destructive mt-1">{errors.supplierId.message}</p>
                 )}
               </div>
 
               <div>
-                <label className="text-xs font-semibold text-gray-700 block mb-1">
+                <label className="text-xs font-semibold text-foreground block mb-1">
                   ক্যাটাগরি *
                 </label>
                 <select
                   {...register("category", { required: "ক্যাটাগরি আবশ্যক!" })}
-                  className="w-full h-10 px-3 py-2 rounded-lg border border-slate-300 text-sm focus:ring-2 focus:ring-blue-500"
+                  className="w-full h-10 px-3 py-2 rounded-lg border border-border bg-background text-sm focus:ring-2 focus:ring-primary"
                   onChange={(e) => {
                     setValue("category", e.target.value);
                     setValue("productId", "");
@@ -223,24 +196,20 @@ export default function PurchaseModal({ isOpen, onClose }) {
                 >
                   <option value="">নির্বাচন করুন</option>
                   {categories.map((cat, idx) => (
-                    <option key={idx} value={cat}>
-                      {cat}
-                    </option>
+                    <option key={idx} value={cat}>{cat}</option>
                   ))}
                 </select>
               </div>
 
               <div>
-                <label className="text-xs font-semibold text-gray-700 block mb-1">
+                <label className="text-xs font-semibold text-foreground block mb-1">
                   পণ্যের নাম *
                 </label>
                 <select
-                  {...register("productId", {
-                    required: "পণ্য নির্বাচন করুন!",
-                  })}
+                  {...register("productId", { required: "পণ্য নির্বাচন করুন!" })}
                   onChange={handleProductChange}
                   disabled={!selectedCategory}
-                  className="w-full h-10 px-3 py-2 rounded-lg border border-slate-300 text-sm focus:ring-2 focus:ring-blue-500 disabled:bg-gray-200"
+                  className="w-full h-10 px-3 py-2 rounded-lg border border-border bg-background text-sm focus:ring-2 focus:ring-primary disabled:opacity-50"
                 >
                   <option value="">পণ্য নির্বাচন করুন</option>
                   {filteredProducts.map((p) => (
@@ -255,24 +224,19 @@ export default function PurchaseModal({ isOpen, onClose }) {
             {/* সেকশন ২: পরিমাণ ও মূল্য */}
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
               <div className="col-span-2 md:col-span-1">
-                <label className="text-xs font-semibold text-gray-700 block mb-1">
-                  পরিমাণ *
-                </label>
+                <label className="text-xs font-semibold text-foreground block mb-1">পরিমাণ *</label>
                 <Input
-                  type="number"
-                  step="any"
+                  type="number" step="any"
                   {...register("quantity", { required: "পরিমাণ দিন" })}
                   placeholder="0"
-                  className="h-10 text-sm"
+                  className="h-10 text-sm bg-background border-border"
                 />
               </div>
               <div className="col-span-2 md:col-span-1">
-                <label className="text-xs font-semibold text-gray-700 block mb-1">
-                  একক *
-                </label>
+                <label className="text-xs font-semibold text-foreground block mb-1">একক *</label>
                 <select
                   {...register("unit", { required: true })}
-                  className="w-full h-10 px-3 py-2 rounded-lg border border-slate-300 text-sm"
+                  className="w-full h-10 px-3 py-2 rounded-lg border border-border bg-background text-sm"
                 >
                   <option value="কেজি">কেজি</option>
                   <option value="পিস">পিস</option>
@@ -282,106 +246,75 @@ export default function PurchaseModal({ isOpen, onClose }) {
                 </select>
               </div>
               <div className="col-span-2 md:col-span-1">
-                <label className="text-xs font-semibold text-gray-700 block mb-1">
-                  ক্রয় মূল্য *
-                </label>
+                <label className="text-xs font-semibold text-foreground block mb-1">ক্রয় মূল্য *</label>
                 <Input
-                  type="number"
-                  step="any"
+                  type="number" step="any"
                   {...register("buyPrice", { required: "দাম দিন" })}
                   placeholder="0"
-                  className="h-10 text-sm"
+                  className="h-10 text-sm bg-background border-border"
                 />
               </div>
               <div className="col-span-2 md:col-span-1">
-                <label className="text-xs font-semibold text-gray-700 block mb-1">
-                  বিক্রয় মূল্য
-                </label>
+                <label className="text-xs font-semibold text-foreground block mb-1">বিক্রয় মূল্য</label>
                 <Input
-                  type="number"
-                  step="any"
+                  type="number" step="any"
                   {...register("sellPrice")}
                   placeholder="0"
-                  className="h-10 text-sm text-blue-600 font-bold"
+                  className="h-10 text-sm text-primary font-bold bg-background border-border"
                 />
               </div>
             </div>
 
-            {/* সেকশন ৩: বিলিং ও পেমেন্ট (সবচেয়ে গুরুত্বপূর্ণ অংশ) */}
-            <div className="bg-blue-50/50 p-4 rounded-xl border border-blue-100 mt-6">
-              <h3 className="text-sm font-bold text-blue-800 mb-4 border-b border-blue-200 pb-2">
+            {/* সেকশন ৩: বিলিং ও পেমেন্ট */}
+            <div className="bg-primary/5 p-4 rounded-xl border border-primary/20 mt-6">
+              <h3 className="text-sm font-bold text-primary mb-4 border-b border-primary/20 pb-2">
                 বিলের হিসাব (Billing Details)
               </h3>
 
               <div className="flex flex-col gap-3">
                 <div className="flex justify-between items-center">
-                  <span className="text-sm font-medium text-gray-600">
-                    মোট বিল (Subtotal):
-                  </span>
-                  <span className="text-sm font-bold text-gray-800">
-                    {subTotal.toFixed(2)} ৳
-                  </span>
+                  <span className="text-sm font-medium text-muted-foreground">মোট বিল (Subtotal):</span>
+                  <span className="text-sm font-bold text-foreground">{subTotal.toFixed(2)} ৳</span>
                 </div>
 
                 <div className="flex justify-between items-center">
-                  <span className="text-sm font-medium text-gray-600">
-                    ডিসকাউন্ট (ছাড়):
-                  </span>
+                  <span className="text-sm font-medium text-muted-foreground">ডিসকাউন্ট (ছাড়):</span>
                   <Input
                     type="number"
                     {...register("discount")}
-                    className="h-8 w-32 text-right text-sm"
+                    className="h-8 w-32 text-right text-sm bg-background border-border"
                     placeholder="0"
                   />
                 </div>
 
-                <div className="flex justify-between items-center pt-2 border-t border-blue-100">
-                  <span className="text-base font-bold text-gray-800">
-                    সর্বমোট (Grand Total):
-                  </span>
-                  <span className="text-base font-bold text-blue-700">
-                    {grandTotal.toFixed(2)} ৳
-                  </span>
+                <div className="flex justify-between items-center pt-2 border-t border-primary/20">
+                  <span className="text-base font-bold text-foreground">সর্বমোট (Grand Total):</span>
+                  <span className="text-base font-bold text-primary">{grandTotal.toFixed(2)} ৳</span>
                 </div>
 
                 <div className="flex justify-between items-center mt-2">
-                  <span className="text-sm font-bold text-green-700">
-                    নগদ পরিশোধ (Paid):
-                  </span>
+                  <span className="text-sm font-bold text-emerald-600 dark:text-emerald-400">নগদ পরিশোধ (Paid):</span>
                   <Input
                     type="number"
                     {...register("paidAmount")}
-                    className="h-9 w-32 text-right text-sm border-green-300 focus:ring-green-500"
+                    className="h-9 w-32 text-right text-sm border-emerald-500/50 focus:ring-emerald-500 bg-background"
                     placeholder="0"
                   />
                 </div>
 
-                <div className="flex justify-between items-center pt-2 border-t border-blue-100 bg-red-50 p-2 rounded-lg">
-                  <span className="text-sm font-bold text-red-600">
-                    বকেয়া থাকবে (Due):
-                  </span>
-                  <span className="text-lg font-black text-red-600">
-                    {dueAmount.toFixed(2)} ৳
-                  </span>
+                <div className="flex justify-between items-center pt-2 border-t border-primary/20 bg-destructive/10 p-2 rounded-lg">
+                  <span className="text-sm font-bold text-destructive">বকেয়া থাকবে (Due):</span>
+                  <span className="text-lg font-black text-destructive">{dueAmount.toFixed(2)} ৳</span>
                 </div>
               </div>
             </div>
 
             {/* বাটন গ্রুপ */}
             <div className="flex gap-3 pt-4">
-              <Button
-                type="button"
-                variant="outline"
-                className="flex-1"
-                onClick={onClose}
-              >
+              <Button type="button" variant="outline" className="flex-1 border-border" onClick={onClose}>
                 বাতিল
               </Button>
-              <Button
-                type="submit"
-                disabled={mutation.isPending}
-                className="flex-[2] bg-blue-600 hover:bg-blue-700 text-white"
-              >
+              <Button type="submit" disabled={mutation.isPending} className="flex-[2] bg-primary hover:bg-primary/90 text-primary-foreground">
                 {mutation.isPending ? "সেভ হচ্ছে..." : "ইনভয়েস সেভ করুন"}
               </Button>
             </div>

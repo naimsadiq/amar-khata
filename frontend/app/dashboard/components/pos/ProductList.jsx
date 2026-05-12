@@ -2,14 +2,12 @@ import { useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Search } from "lucide-react";
 
-// নামের প্রথম অক্ষর দিয়ে আইকন বানানোর ফাংশন
 const getInitials = (name) =>
   name ? name.substring(0, 2).toUpperCase() : "PR";
 
 export default function ProductList({ products, onAddToCart }) {
   const [search, setSearch] = useState("");
 
-  // সার্চ অনুযায়ী ফিল্টার
   const filteredProducts = products.filter(
     (p) =>
       p.name.toLowerCase().includes(search.toLowerCase()) ||
@@ -17,45 +15,48 @@ export default function ProductList({ products, onAddToCart }) {
   );
 
   return (
-    <div className="flex-1 flex flex-col gap-[14px] overflow-hidden">
-      <div className="bg-white rounded-[12px] p-[16px] border border-[#e8ecf0] flex flex-col h-full">
-        <div className="relative mb-[14px]">
-          <Search className="absolute left-[12px] top-[10px] h-4 w-4 text-[#7f8c9a]" />
+    <div className="flex-1 flex flex-col gap-4 overflow-hidden min-h-[400px]">
+      <div className="bg-card text-card-foreground rounded-xl p-4 border border-border flex flex-col h-full shadow-sm">
+        <div className="relative mb-4">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="পণ্যের নাম বা ক্যাটাগরি খুঁজুন..."
-            className="pl-[36px] border-[#e8ecf0] rounded-[8px] text-[0.82rem] h-[38px] bg-white focus-visible:ring-[#2ecc71]"
+            className="pl-10 border-border rounded-lg text-sm h-10 bg-background focus-visible:ring-primary focus-visible:ring-2"
           />
         </div>
 
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-[10px] overflow-y-auto pr-1 pb-2 h-full content-start">
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-5 gap-3 overflow-y-auto pr-2 pb-2 h-full content-start custom-scrollbar">
           {filteredProducts.map((product) => (
             <div
               key={product._id}
               onClick={() => product.stockQuantity > 0 && onAddToCart(product)}
-              className={`bg-[#f8fafb] border border-[#e8ecf0] rounded-[10px] p-[12px] text-center transition-all duration-150 ${
+              className={`bg-background border border-border rounded-xl p-3 text-center transition-all duration-200 ${
                 product.stockQuantity > 0
-                  ? "cursor-pointer hover:border-[#2ecc71] hover:bg-[#eafaf1] hover:-translate-y-[2px] hover:shadow-sm"
-                  : "opacity-60 cursor-not-allowed"
+                  ? "cursor-pointer hover:border-primary hover:bg-primary/5 hover:-translate-y-1 hover:shadow-md"
+                  : "opacity-50 grayscale-[50%] cursor-not-allowed"
               }`}
             >
-              {/* Text Avatar Icon */}
-              <div className="w-[40px] h-[40px] bg-[#e8ecf0] text-[#7f8c9a] rounded-[8px] flex items-center justify-center mx-auto mb-[8px] text-[1.1rem] font-bold">
+              <div className="w-10 h-10 bg-muted text-muted-foreground rounded-lg flex items-center justify-center mx-auto mb-2 text-lg font-bold">
                 {getInitials(product.name)}
               </div>
 
               <div
-                className="text-[0.78rem] font-bold text-[#2c3e50] mb-[4px] line-clamp-1"
+                className="text-sm font-bold text-foreground mb-1 line-clamp-1"
                 title={product.name}
               >
                 {product.name}
               </div>
-              <div className="text-[0.72rem] text-[#2ecc71] font-bold">
+              <div className="text-xs text-primary font-bold">
                 ৳{product.sellPrice.toLocaleString("en-IN")}/{product.unit}
               </div>
               <div
-                className={`text-[0.68rem] mt-0.5 font-medium ${product.stockQuantity === 0 ? "text-[#e74c3c]" : "text-[#7f8c9a]"}`}
+                className={`text-[11px] mt-1 font-medium ${
+                  product.stockQuantity === 0
+                    ? "text-destructive"
+                    : "text-muted-foreground"
+                }`}
               >
                 {product.stockQuantity === 0
                   ? "স্টক শেষ"
@@ -63,8 +64,10 @@ export default function ProductList({ products, onAddToCart }) {
               </div>
             </div>
           ))}
+
           {filteredProducts.length === 0 && (
-            <div className="col-span-full text-center text-gray-400 py-10 text-sm">
+            <div className="col-span-full flex flex-col items-center justify-center text-muted-foreground py-16 text-sm">
+              <Search className="h-10 w-10 mb-3 opacity-20" />
               কোনো পণ্য পাওয়া যায়নি
             </div>
           )}

@@ -1,5 +1,3 @@
-// components/pos/CustomerCombobox.jsx
-
 "use client";
 import * as React from "react";
 import { Check, ChevronsUpDown, PlusCircle } from "lucide-react";
@@ -35,7 +33,7 @@ export function CustomerCombobox({
           variant="outline"
           role="combobox"
           aria-expanded={open}
-          className="w-full justify-between h-[38px] border-[#e8ecf0] bg-white text-[0.82rem] font-normal"
+          className="w-full justify-between h-10 border-border bg-background text-sm font-normal text-foreground hover:bg-muted/50"
         >
           {selectedCustomer
             ? customers.find((cus) => cus._id === selectedCustomer)?.name
@@ -43,39 +41,50 @@ export function CustomerCombobox({
           <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
         </Button>
       </PopoverTrigger>
-      <PopoverContent className="w-[340px] p-0">
+      <PopoverContent className="w-[340px] p-0 border-border bg-popover text-popover-foreground">
         <Command>
-          <CommandInput placeholder="নাম বা ফোন নম্বর দিয়ে খুঁজুন..." />
-          <CommandList>
+          <CommandInput
+            placeholder="নাম বা ফোন নম্বর দিয়ে খুঁজুন..."
+            className="border-none focus:ring-0"
+          />
+          <CommandList className="custom-scrollbar">
             <CommandEmpty>কোনো গ্রাহক পাওয়া যায়নি।</CommandEmpty>
             <CommandGroup>
               {customers.map((cus) => (
                 <CommandItem
                   key={cus._id}
-                  value={`${cus.name} ${cus.phone}`} // সার্চ করার জন্য নাম ও ফোন নম্বর
+                  value={`${cus.name} ${cus.phone}`}
                   onSelect={() => {
                     onSelectCustomer(cus._id);
                     setOpen(false);
                   }}
+                  className="aria-selected:bg-muted aria-selected:text-foreground cursor-pointer"
                 >
                   <Check
                     className={cn(
-                      "mr-2 h-4 w-4",
+                      "mr-2 h-4 w-4 text-primary",
                       selectedCustomer === cus._id
                         ? "opacity-100"
                         : "opacity-0",
                     )}
                   />
                   <div>
-                    <div>{cus.name}</div>
-                    <div className="text-xs text-gray-400">{cus.phone}</div>
+                    <div className="font-medium">{cus.name}</div>
+                    <div className="text-xs text-muted-foreground">
+                      {cus.phone}
+                    </div>
                   </div>
                 </CommandItem>
               ))}
             </CommandGroup>
-            <CommandSeparator />
-            <CommandGroup onClick={() => setIsModalOpen(true)}>
-              <CommandItem className="text-blue-600 cursor-pointer">
+            <CommandSeparator className="bg-border" />
+            <CommandGroup
+              onClick={() => {
+                setIsModalOpen(true);
+                setOpen(false);
+              }}
+            >
+              <CommandItem className="text-primary hover:text-primary/80 cursor-pointer font-medium mt-1">
                 <PlusCircle className="mr-2 h-4 w-4" />
                 নতুন গ্রাহক যোগ করুন
               </CommandItem>

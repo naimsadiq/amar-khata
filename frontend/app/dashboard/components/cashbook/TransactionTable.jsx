@@ -1,10 +1,18 @@
 import { useState } from "react";
+import { ArrowDownToLine, ArrowUpFromLine, Search } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { Badge } from "@/components/ui/badge";
 
 export default function TransactionTable({ transactions }) {
   const [search, setSearch] = useState("");
-  const formatDate = (d) => new Date(d).toLocaleDateString("en-GB");
 
-  // সার্চ লজিক: ক্যাটাগরি, নোট, নাম বা ফোন নম্বর দিয়ে সার্চ করা যাবে
+  const formatDate = (d) =>
+    new Date(d).toLocaleDateString("en-GB", {
+      day: "2-digit",
+      month: "short",
+      year: "numeric",
+    });
+
   const filteredData = transactions
     ?.filter(
       (item) =>
@@ -16,34 +24,39 @@ export default function TransactionTable({ transactions }) {
     ?.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
 
   return (
-    <div className="bg-white rounded-[12px] border border-[#e8ecf0] overflow-hidden">
-      <div className="py-4 px-5 border-b border-[#e8ecf0] flex justify-between items-center">
-        <span className="font-bold text-[#2c3e50]">লেনদেনের তালিকা</span>
-        <input
-          placeholder="নাম, নম্বর বা বিবরণ দিয়ে খোঁজুন..."
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          className="w-full max-w-[250px] py-1 px-3 border rounded-lg text-sm outline-none"
-        />
+    <div className="bg-card rounded-xl border border-border shadow-sm overflow-hidden">
+      {/* Search Header */}
+      <div className="p-4 border-b border-border flex flex-col sm:flex-row gap-3 justify-between sm:items-center bg-muted/30">
+        <span className="font-semibold text-foreground">লেনদেনের তালিকা</span>
+        <div className="relative w-full sm:max-w-xs">
+          <Search className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
+          <Input
+            placeholder="নাম, নম্বর বা বিবরণ..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            className="pl-9 h-9 bg-background border-border"
+          />
+        </div>
       </div>
 
-      <div className="overflow-x-auto">
-        <table className="w-full">
-          <thead className="bg-[#f8fafb]">
+      {/* --- DESKTOP VIEW (TABLE) --- */}
+      <div className="hidden md:block overflow-x-auto">
+        <table className="w-full text-left">
+          <thead className="bg-muted/50 border-b border-border">
             <tr>
-              <th className="py-3 px-5 text-left text-xs text-[#7f8c9a]">
+              <th className="py-3 px-5 text-xs font-medium text-muted-foreground whitespace-nowrap">
                 তারিখ
               </th>
-              <th className="py-3 px-5 text-left text-xs text-[#7f8c9a]">
+              <th className="py-3 px-5 text-xs font-medium text-muted-foreground whitespace-nowrap">
                 বিবরণ
               </th>
-              <th className="py-3 px-5 text-left text-xs text-[#7f8c9a]">
+              <th className="py-3 px-5 text-xs font-medium text-muted-foreground whitespace-nowrap">
                 পার্টি ইনফো
               </th>
-              <th className="py-3 px-5 text-left text-xs text-[#7f8c9a]">
+              <th className="py-3 px-5 text-xs font-medium text-muted-foreground whitespace-nowrap">
                 ধরন
               </th>
-              <th className="py-3 px-5 text-left text-xs text-[#7f8c9a]">
+              <th className="py-3 px-5 text-xs font-medium text-right text-muted-foreground whitespace-nowrap">
                 পরিমাণ
               </th>
             </tr>
@@ -53,52 +66,47 @@ export default function TransactionTable({ transactions }) {
               filteredData.map((row) => (
                 <tr
                   key={row._id}
-                  className="border-b hover:bg-slate-50 transition-colors"
+                  className="border-b border-border hover:bg-muted/30 transition-colors"
                 >
-                  <td className="py-4 px-5 text-sm text-[#2c3e50]">
+                  <td className="py-4 px-5 text-sm text-muted-foreground whitespace-nowrap">
                     {formatDate(row.date)}
                   </td>
                   <td className="py-4 px-5 text-sm">
-                    <div className="font-semibold text-[#2c3e50]">
+                    <div className="font-semibold text-foreground">
                       {row.category.replace(/_/g, " ")}
                     </div>
-                    <div className="text-[11px] text-gray-500 italic mt-0.5">
-                      {row.note || "কোনো নোট নেই"}
-                    </div>
+                    {row.note && (
+                      <div className="text-[11px] text-muted-foreground mt-0.5">
+                        {row.note}
+                      </div>
+                    )}
                   </td>
                   <td className="py-4 px-5 text-sm">
                     {row.partyName ? (
                       <div>
-                        <div className="font-medium text-[#2c3e50]">
+                        <div className="font-medium text-foreground">
                           {row.partyName}
                         </div>
-                        <div className="text-[11px] text-gray-400">
+                        <div className="text-[11px] text-muted-foreground">
                           {row.partyPhone}
                         </div>
                       </div>
                     ) : (
-                      <span className="text-[11px] text-gray-400 italic">
-                        সাধারণ
+                      <span className="text-[11px] text-muted-foreground italic">
+                        সাধারণ লেনদেন
                       </span>
                     )}
                   </td>
                   <td className="py-4 px-5 text-sm">
-                    <span
-                      className={`px-2 py-1 rounded-full text-[10px] font-medium ${
-                        row.transactionType === "IN"
-                          ? "bg-green-50 text-green-600"
-                          : "bg-red-50 text-red-600"
-                      }`}
+                    <Badge
+                      variant="outline"
+                      className={`text-[10px] px-2 py-0 h-5 border-none ${row.transactionType === "IN" ? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400" : "bg-destructive/10 text-destructive"}`}
                     >
-                      {row.transactionType === "IN" ? "↑ আয়" : "↓ ব্যয়"}
-                    </span>
+                      {row.transactionType === "IN" ? "আয়" : "ব্যয়"}
+                    </Badge>
                   </td>
                   <td
-                    className={`py-4 px-5 font-bold ${
-                      row.transactionType === "IN"
-                        ? "text-green-600"
-                        : "text-red-600"
-                    }`}
+                    className={`py-4 px-5 font-bold text-right whitespace-nowrap ${row.transactionType === "IN" ? "text-emerald-600 dark:text-emerald-400" : "text-destructive"}`}
                   >
                     ৳ {row.amount.toLocaleString("en-IN")}
                   </td>
@@ -108,7 +116,7 @@ export default function TransactionTable({ transactions }) {
               <tr>
                 <td
                   colSpan={5}
-                  className="py-8 text-center text-gray-400 text-sm"
+                  className="py-12 text-center text-muted-foreground text-sm"
                 >
                   কোনো লেনদেন পাওয়া যায়নি
                 </td>
@@ -116,6 +124,77 @@ export default function TransactionTable({ transactions }) {
             )}
           </tbody>
         </table>
+      </div>
+
+      {/* --- MOBILE VIEW (CARDS) --- */}
+      <div className="block md:hidden flex flex-col divide-y divide-border">
+        {filteredData?.length > 0 ? (
+          filteredData.map((row) => {
+            const isIn = row.transactionType === "IN";
+            return (
+              <div
+                key={row._id}
+                className="p-4 hover:bg-muted/30 transition-colors"
+              >
+                <div className="flex justify-between items-start mb-2">
+                  <div>
+                    <div className="font-semibold text-foreground text-sm">
+                      {row.category.replace(/_/g, " ")}
+                    </div>
+                    <div className="text-[11px] text-muted-foreground mt-0.5">
+                      {formatDate(row.date)}
+                    </div>
+                  </div>
+                  <div
+                    className={`font-bold text-lg flex items-center gap-1 ${isIn ? "text-emerald-600 dark:text-emerald-400" : "text-destructive"}`}
+                  >
+                    {isIn ? (
+                      <ArrowDownToLine className="w-4 h-4" />
+                    ) : (
+                      <ArrowUpFromLine className="w-4 h-4" />
+                    )}
+                    ৳ {row.amount.toLocaleString("en-IN")}
+                  </div>
+                </div>
+
+                <div className="flex justify-between items-end mt-3">
+                  <div>
+                    {row.partyName ? (
+                      <div>
+                        <div className="text-xs font-medium text-foreground">
+                          {row.partyName}
+                        </div>
+                        <div className="text-[10px] text-muted-foreground">
+                          {row.partyPhone}
+                        </div>
+                      </div>
+                    ) : (
+                      <span className="text-[11px] text-muted-foreground italic">
+                        সাধারণ লেনদেন
+                      </span>
+                    )}
+                  </div>
+                  <Badge
+                    variant="outline"
+                    className={`text-[10px] px-2 py-0 border-none ${isIn ? "bg-emerald-500/10 text-emerald-600" : "bg-destructive/10 text-destructive"}`}
+                  >
+                    {isIn ? "আয়" : "ব্যয়"}
+                  </Badge>
+                </div>
+
+                {row.note && (
+                  <div className="mt-3 p-2 bg-muted/50 rounded-md text-[11px] text-muted-foreground italic">
+                    "{row.note}"
+                  </div>
+                )}
+              </div>
+            );
+          })
+        ) : (
+          <div className="py-12 text-center text-muted-foreground text-sm">
+            কোনো লেনদেন পাওয়া যায়নি
+          </div>
+        )}
       </div>
     </div>
   );

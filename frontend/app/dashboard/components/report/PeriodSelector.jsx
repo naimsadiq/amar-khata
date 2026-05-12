@@ -26,35 +26,65 @@ export default function PeriodSelector({ onToast }) {
   };
 
   return (
-    <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between mb-[22px] gap-4">
-      <div className="flex flex-wrap gap-[4px] bg-white border border-[#e4e8f0] rounded-[8px] p-[4px]">
-        {tabs.map((tab) => (
-          <button
-            key={tab}
-            onClick={() => handleTab(tab)}
-            className={`px-[16px] py-[6px] rounded-[6px] text-[12px] font-semibold transition-all ${
-              activeTab === tab
-                ? "bg-[#1a7f4b] text-white"
-                : "text-[#7a8aaa] bg-transparent hover:bg-[#f4f6fb]"
-            }`}
-          >
-            {tab}
-          </button>
-        ))}
+    <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between mb-6 gap-4">
+      {/* Tab Group — mobile: 2-column grid, lg: single-row flex */}
+      <div className="bg-card border border-border rounded-lg p-1 shadow-sm w-full lg:w-auto">
+        <div className="grid grid-cols-2 gap-1 lg:flex lg:gap-1">
+          {tabs.map((tab) => (
+            <button
+              key={tab}
+              onClick={() => handleTab(tab)}
+              className={`
+                px-4 py-2 rounded-md text-[12px] font-semibold whitespace-nowrap text-center
+                transition-all duration-150
+                focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring
+                ${
+                  activeTab === tab
+                    ? "bg-primary text-primary-foreground shadow-sm"
+                    : "text-muted-foreground bg-transparent hover:bg-muted hover:text-foreground"
+                }
+              `}
+            >
+              {tab}
+            </button>
+          ))}
+        </div>
       </div>
-      <div className="flex items-center gap-[10px]">
+
+      {/* Period Navigator */}
+      <div className="flex items-center gap-2.5">
         <button
           onClick={() => handleNav(-1)}
-          className="bg-white border border-[#e4e8f0] rounded-[7px] w-[30px] h-[30px] flex items-center justify-center text-[#1a2236] hover:bg-[#e8f5ee] hover:border-[#2ea86b] hover:text-[#2ea86b] transition-all"
+          disabled={periodIdx === 0}
+          className="
+            bg-card border border-border rounded-lg w-8 h-8
+            flex items-center justify-center text-foreground
+            hover:bg-primary/10 hover:border-primary hover:text-primary
+            disabled:opacity-40 disabled:pointer-events-none
+            transition-all duration-150 text-lg leading-none
+            focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring
+          "
+          aria-label="আগের মাস"
         >
           ‹
         </button>
-        <div className="text-[14px] font-bold min-w-[130px] text-center text-[#1a2236]">
+
+        <div className="text-sm font-bold min-w-[130px] text-center text-foreground select-none">
           {periods[periodIdx]}
         </div>
+
         <button
           onClick={() => handleNav(1)}
-          className="bg-white border border-[#e4e8f0] rounded-[7px] w-[30px] h-[30px] flex items-center justify-center text-[#1a2236] hover:bg-[#e8f5ee] hover:border-[#2ea86b] hover:text-[#2ea86b] transition-all"
+          disabled={periodIdx === periods.length - 1}
+          className="
+            bg-card border border-border rounded-lg w-8 h-8
+            flex items-center justify-center text-foreground
+            hover:bg-primary/10 hover:border-primary hover:text-primary
+            disabled:opacity-40 disabled:pointer-events-none
+            transition-all duration-150 text-lg leading-none
+            focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring
+          "
+          aria-label="পরের মাস"
         >
           ›
         </button>

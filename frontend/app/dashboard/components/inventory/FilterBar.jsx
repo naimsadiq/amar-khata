@@ -18,19 +18,19 @@ export default function FilterBar({
   categories,
 }) {
   return (
-    <div className="flex flex-col md:flex-row gap-3 mb-6">
+    <div className="flex flex-col md:flex-row gap-3">
       <div className="relative w-full md:w-[300px]">
-        <Search className="absolute left-3 top-2.5 h-4 w-4 text-slate-400" />
+        <Search className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
         <Input
           placeholder="পণ্যের নাম খোঁজুন..."
-          className="pl-9 bg-white"
+          className="pl-9 bg-background border-border text-foreground"
           value={search}
           onChange={(e) => setSearch(e.target.value)}
         />
       </div>
 
       <Select value={category} onValueChange={setCategory}>
-        <SelectTrigger className="w-full md:w-[180px] bg-white">
+        <SelectTrigger className="w-full md:w-[180px] bg-background border-border text-foreground">
           <SelectValue placeholder="ক্যাটাগরি" />
         </SelectTrigger>
         <SelectContent>
@@ -44,7 +44,7 @@ export default function FilterBar({
       </Select>
 
       <Select value={stockStatus} onValueChange={setStockStatus}>
-        <SelectTrigger className="w-full md:w-[180px] bg-white">
+        <SelectTrigger className="w-full md:w-[180px] bg-background border-border text-foreground">
           <SelectValue placeholder="স্টক অবস্থা" />
         </SelectTrigger>
         <SelectContent>

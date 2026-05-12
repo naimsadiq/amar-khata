@@ -9,11 +9,9 @@ import {
   BookText,
   Boxes,
   Receipt,
-  Landmark,
-  UserCog,
   BarChart4,
 } from "lucide-react";
-import { BusinessProfile } from "./BusinessProfile"; // নতুন কম্পোনেন্ট ইম্পোর্ট করুন
+import { BusinessProfile } from "./BusinessProfile";
 
 const navItems = [
   { href: "/dashboard", icon: LayoutDashboard, label: "ড্যাশবোর্ড" },
@@ -24,8 +22,6 @@ const navItems = [
 ];
 
 const moreNavItems = [
-  { href: "/dashboard/banking", icon: Landmark, label: "ব্যাংক হিসাব" },
-  { href: "/dashboard/staff", icon: UserCog, label: "স্টাফ" },
   { href: "/dashboard/reports", icon: BarChart4, label: "রিপোর্ট" },
 ];
 
@@ -33,72 +29,84 @@ export function Sidebar({ className }) {
   const pathname = usePathname();
 
   return (
-    <div className={cn("hidden border-r bg-paper md:block", className)}>
+    <aside className={cn("hidden border-r bg-card md:block", className)}>
       <div className="flex h-full max-h-screen flex-col">
-        {/* লোগো সেকশন */}
-        <div className="flex h-auto flex-col items-start border-b p-4">
-          <Link href="/" className="flex items-center gap-2">
-            <span className="text-2xl font-bold text-brand">আমার খাতা</span>
+        {/* Logo Section */}
+        <div className="flex h-16 items-center px-6 border-b">
+          <Link href="/" className="flex flex-col items-start gap-0.5">
+            <span className="text-2xl font-bold text-primary tracking-tight">
+              আমার খাতা
+            </span>
+            <span className="text-[10px] text-muted-foreground uppercase tracking-wider font-semibold">
+              Business Manager
+            </span>
           </Link>
-          <p className="text-xs text-ink-3">ব্যবসায়িক হিসাব-নিকাশ</p>
         </div>
 
-        {/* Business Switcher এখানে যুক্ত করা হয়েছে */}
+        {/* Business Switcher */}
         <div className="p-4">
           <BusinessProfile />
         </div>
 
-        {/* নেভিগেশন সেকশন */}
-        <div className="flex-1 overflow-y-auto">
-          <nav className="grid items-start px-4 text-sm font-medium">
-            <h3 className="px-2 py-2 text-xs font-semibold uppercase text-ink-3 tracking-wider">
+        {/* Navigation */}
+        <div className="flex-1 overflow-y-auto scrollbar-hide">
+          <nav className="grid gap-1 px-3 text-sm font-medium">
+            <h3 className="px-3 py-2 text-xs font-semibold uppercase text-muted-foreground/70 tracking-wider">
               প্রধান মেন্যু
             </h3>
-            {navItems.map((item) => (
-              <Link
-                key={item.href}
-                href={item.href}
-                className={cn(
-                  "flex items-center gap-3 rounded-md px-3 py-2 text-ink-2 transition-all hover:bg-paper-2 hover:text-ink",
-                  pathname === item.href &&
-                    "bg-brand-l font-semibold text-brand-d",
-                )}
-              >
-                <item.icon className="h-4 w-4" />
-                {item.label}
-                {item.badge && (
-                  <span className="ml-auto flex h-5 w-5 items-center justify-center rounded-full bg-red-l text-xs font-semibold text-red">
-                    {item.badge}
-                  </span>
-                )}
-              </Link>
-            ))}
+            {navItems.map((item) => {
+              const isActive = pathname === item.href;
+              return (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  className={cn(
+                    "flex items-center gap-3 rounded-lg px-3 py-2.5 transition-all",
+                    isActive
+                      ? "bg-primary/10 text-primary font-semibold"
+                      : "text-muted-foreground hover:bg-muted hover:text-foreground",
+                  )}
+                >
+                  <item.icon
+                    className={cn(
+                      "h-4 w-4",
+                      isActive ? "text-primary" : "text-muted-foreground",
+                    )}
+                  />
+                  {item.label}
+                  {item.badge && (
+                    <span className="ml-auto flex h-5 w-5 items-center justify-center rounded-full bg-destructive/10 text-[10px] font-bold text-destructive">
+                      {item.badge}
+                    </span>
+                  )}
+                </Link>
+              );
+            })}
 
-            <h3 className="px-2 pt-6 pb-2 text-xs font-semibold uppercase text-ink-3 tracking-wider">
+            <h3 className="px-3 pt-6 pb-2 text-xs font-semibold uppercase text-muted-foreground/70 tracking-wider">
               আরও
             </h3>
-            {moreNavItems.map((item) => (
-              <Link
-                key={item.href}
-                href={item.href}
-                className={cn(
-                  "flex items-center gap-3 rounded-md px-3 py-2 text-ink-2 transition-all hover:bg-paper-2 hover:text-ink",
-                  pathname === item.href &&
-                    "bg-brand-l font-semibold text-brand-d",
-                )}
-              >
-                <item.icon className="h-4 w-4" />
-                {item.label}
-              </Link>
-            ))}
+            {moreNavItems.map((item) => {
+              const isActive = pathname === item.href;
+              return (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  className={cn(
+                    "flex items-center gap-3 rounded-lg px-3 py-2.5 transition-all",
+                    isActive
+                      ? "bg-primary/10 text-primary font-semibold"
+                      : "text-muted-foreground hover:bg-muted hover:text-foreground",
+                  )}
+                >
+                  <item.icon className="h-4 w-4" />
+                  {item.label}
+                </Link>
+              );
+            })}
           </nav>
         </div>
-
-        {/* সাইডবার ফুটার - User Info (যদি লাগে) */}
-        {/* <div className="mt-auto p-4 border-t">
-            ... User Info Here
-        </div> */}
       </div>
-    </div>
+    </aside>
   );
 }

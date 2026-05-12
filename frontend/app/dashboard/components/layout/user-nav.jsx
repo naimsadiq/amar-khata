@@ -13,16 +13,20 @@ import {
 } from "@/components/ui/dropdown-menu";
 import useAuth from "@/hook/useAuth";
 import { CreditCard, LogOut, Settings, User } from "lucide-react";
+import { useRouter } from "next/navigation";
 
 export function UserNav() {
   const { user } = useAuth();
+  const router = useRouter();
 
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
         <Button variant="ghost" className="relative h-8 w-8 rounded-full">
-          <Avatar className="h-9 w-9">
-            <AvatarFallback>{user?.initials || "AK"}</AvatarFallback>
+          <Avatar className="h-9 w-9 border border-border">
+            <AvatarFallback className="bg-primary/10 text-primary font-semibold">
+              {user?.initials || "AK"}
+            </AvatarFallback>
           </Avatar>
         </Button>
       </DropdownMenuTrigger>
@@ -37,11 +41,11 @@ export function UserNav() {
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
         <DropdownMenuGroup>
-          <DropdownMenuItem>
+          <DropdownMenuItem onClick={() => router.push("/dashboard/profile")}>
             <User className="mr-2 h-4 w-4" />
             <span>প্রোফাইল</span>
           </DropdownMenuItem>
-          <DropdownMenuItem>
+          <DropdownMenuItem onClick={() => router.push("/dashboard/settings")}>
             <Settings className="mr-2 h-4 w-4" />
             <span>সেটিংস</span>
           </DropdownMenuItem>

@@ -7,8 +7,8 @@ import Swal from "sweetalert2";
 import PosHeader from "../components/pos/PosHeader";
 import ProductList from "../components/pos/ProductList";
 import CartSidebar from "../components/pos/CartSidebar";
-import { Loader2 } from "lucide-react";
 import AddModal from "../components/parties/AddModal";
+import { AlertTriangle } from "lucide-react";
 
 export default function PosPage() {
   const queryClient = useQueryClient();
@@ -21,7 +21,11 @@ export default function PosPage() {
   );
 
   // ১. ইনভেন্টরি ফেচ করা
-  const { data: products = [], isLoading: loadingProducts } = useQuery({
+  const {
+    data: products = [],
+    isLoading: loadingProducts,
+    isError: errorProducts,
+  } = useQuery({
     queryKey: ["inventory"],
     queryFn: async () => {
       const res = await api.get("/api/inventory");
@@ -30,7 +34,11 @@ export default function PosPage() {
   });
 
   // ২. কাস্টমার ফেচ করা
-  const { data: customers = [], isLoading: loadingCustomers } = useQuery({
+  const {
+    data: customers = [],
+    isLoading: loadingCustomers,
+    isError: errorCustomers,
+  } = useQuery({
     queryKey: ["parties"],
     queryFn: async () => {
       const res = await api.get("/api/parties");
@@ -38,7 +46,7 @@ export default function PosPage() {
     },
   });
 
-  // Cart Functions
+  // Cart Functions (অপরিবর্তিত)
   const handleAddToCart = (product) => {
     setCart((prevCart) => {
       const exists = prevCart.find((item) => item._id === product._id);
@@ -84,7 +92,7 @@ export default function PosPage() {
   const removeItem = (id) =>
     setCart((prevCart) => prevCart.filter((item) => item._id !== id));
 
-  // ৩. ইনভয়েস সাবমিট করার Mutation (Sales API তে হিট করবে)
+  // ৩. ইনভয়েস সাবমিট করার Mutation (অপরিবর্তিত)
   const mutation = useMutation({
     mutationFn: async (invoiceData) => {
       const res = await api.post("/api/sales", invoiceData);
@@ -130,7 +138,7 @@ export default function PosPage() {
         name: c.name,
         price: c.sellPrice,
         quantity: c.qty,
-        totalLineAmount: c.sellPrice * c.qty, // ব্যাকএন্ডের সাথে মিলানো হয়েছে
+        totalLineAmount: c.sellPrice * c.qty,
       })),
       ...checkoutData,
     };
@@ -138,18 +146,77 @@ export default function PosPage() {
     mutation.mutate(payload);
   };
 
-  if (loadingProducts || loadingCustomers) {
+  // Error State Handling
+  if (errorProducts || errorCustomers) {
     return (
-      <div className="h-screen flex items-center justify-center">
-        <Loader2 className="animate-spin text-[#2ecc71] h-10 w-10" />
+      <div className="flex flex-col items-center justify-center h-screen bg-background text-foreground space-y-4 px-4 text-center">
+        <div className="text-destructive w-16 h-16 bg-destructive/10 p-4 rounded-full flex items-center justify-center">
+          <AlertTriangle className="w-full h-full" />
+        </div>
+        <h2 className="text-2xl font-bold">
+          দুঃখিত, ডেটা লোড করতে সমস্যা হয়েছে!
+        </h2>
+        <p className="text-muted-foreground">
+          আপনার ইন্টারনেট কানেকশন চেক করুন অথবা কিছুক্ষণ পর আবার চেষ্টা করুন।
+        </p>
+        <button
+          onClick={() => window.location.reload()}
+          className="px-6 py-2 bg-primary text-primary-foreground rounded-md shadow-md hover:opacity-90 transition"
+        >
+          রিলোড করুন
+        </button>
       </div>
     );
   }
 
+  // Skeleton Loading Animation
+  if (loadingProducts || loadingCustomers) {
+    return (
+      <div className="flex flex-col h-screen bg-background w-full">
+        {/* Header Skeleton */}
+        <div className="h-[56px] border-b border-border bg-card flex justify-between items-center px-6 shrink-0">
+          <div className="w-32 h-6 bg-muted animate-pulse rounded"></div>
+          <div className="w-24 h-8 bg-muted animate-pulse rounded"></div>
+        </div>
+
+        {/* Main Content Skeleton */}
+        <div className="flex flex-col lg:flex-row gap-[20px] p-[16px] lg:p-[20px_24px] h-full overflow-hidden">
+          {/* Product Skeleton */}
+          <div className="flex-1 bg-card rounded-[12px] border border-border p-4 flex flex-col gap-4">
+            <div className="w-full h-10 bg-muted animate-pulse rounded-lg"></div>
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-5 gap-[10px]">
+              {Array.from({ length: 12 }).map((_, i) => (
+                <div
+                  key={i}
+                  className="h-32 bg-muted/60 animate-pulse rounded-[10px]"
+                ></div>
+              ))}
+            </div>
+          </div>
+
+          {/* Cart Sidebar Skeleton */}
+          <div className="w-full lg:w-[360px] xl:w-[400px] bg-card rounded-[12px] border border-border flex flex-col h-[500px] lg:h-full shrink-0">
+            <div className="h-14 border-b border-border bg-muted/30 animate-pulse rounded-t-[12px]"></div>
+            <div className="flex-1 p-4 flex flex-col gap-3">
+              {Array.from({ length: 3 }).map((_, i) => (
+                <div
+                  key={i}
+                  className="h-16 bg-muted/40 animate-pulse rounded-lg"
+                ></div>
+              ))}
+            </div>
+            <div className="h-[280px] bg-muted/20 animate-pulse rounded-b-[12px] border-t border-border"></div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Main UI
   return (
-    <div className="flex flex-col h-screen bg-[#f5f7fa] overflow-hidden w-full font-['Hind_Siliguri']">
+    <div className="flex flex-col h-screen bg-background overflow-hidden w-full font-sans">
       <PosHeader billNo={billNo} />
-      <div className="flex flex-col lg:flex-row gap-[20px] p-[16px] lg:p-[20px_24px] overflow-y-auto lg:overflow-hidden h-full">
+      <div className="flex flex-col lg:flex-row gap-4 lg:gap-[20px] p-4 lg:p-[20px_24px] overflow-y-auto lg:overflow-hidden h-full">
         <ProductList products={products} onAddToCart={handleAddToCart} />
         <CartSidebar
           billNo={billNo}

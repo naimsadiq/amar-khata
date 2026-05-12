@@ -23,7 +23,7 @@ export const metadata = { title: "আমার খাতা — ডিজিট�
 
 export default function RootLayout({ children }) {
   return (
-    <html lang="bn" data-scroll-behavior="smooth">
+    <html lang="bn" data-scroll-behavior="smooth" data-theme="dark">
       <body
         className={`${tiro.variable} ${hind.variable} ${mono.variable} font-sans bg-paper text-ink overflow-x-hidden`}
       >

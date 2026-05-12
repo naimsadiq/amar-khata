@@ -1,20 +1,20 @@
 export default function KpiCards({ kpis }) {
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-[16px] mb-[22px]">
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
       {kpis.map((kpi) => (
         <div
           key={kpi.id}
-          className="bg-white rounded-[14px] p-[18px_20px] shadow-[0_2px_12px_rgba(26,34,54,0.07)] border border-[#e4e8f0] flex flex-col gap-[4px]"
+          className="bg-card rounded-xl p-5 shadow-sm border border-border flex flex-col gap-1.5 transition-shadow hover:shadow-md"
         >
-          <div className="text-[22px] mb-[4px]">{kpi.icon}</div>
-          <div className="text-[11px] text-[#7a8aaa] font-medium">
+          <div className="text-2xl mb-1">{kpi.icon}</div>
+          <div className="text-xs text-muted-foreground font-medium">
             {kpi.label}
           </div>
-          <div className={`text-[22px] font-bold ${kpi.colorClass}`}>
+          <div className={`text-2xl font-bold ${kpi.colorClass}`}>
             {kpi.value}
           </div>
           <div
-            className={`text-[11px] font-semibold ${kpi.changeType === "up" ? "text-[#2ea86b]" : "text-[#e53935]"}`}
+            className={`text-xs font-semibold ${kpi.changeType === "up" ? "text-primary" : "text-destructive"}`}
           >
             {kpi.changeText}
           </div>
