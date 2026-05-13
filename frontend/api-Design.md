@@ -1,8 +1,61 @@
-আপনার ফ্রন্টএন্ড ডিজাইনটি (আমার খাতা) খুবই চমৎকার এবং প্রফেশনাল হয়েছে! একদম রিয়েল-লাইফ একাউন্টিং বা বুককিপিং অ্যাপের (যেমন: Tally, Khatabook, টালি খাতা) মতো লাগছে। 
 
-যেহেতু ফ্রন্টএন্ড শেষ, এখন ব্যাকএন্ড (API ও Database) প্ল্যান করার পালা। এই ধরনের ড্যাশবোর্ড অ্যাপের ক্ষেত্রে ব্যাকএন্ডের কাজ **কখনোই ড্যাশবোর্ড দিয়ে শুরু করতে হয় না**। কারণ ড্যাশবোর্ডে যেসব ডাটা দেখাচ্ছে (যেমন: মোট পাওনা, শীর্ষ পণ্য, লেনদেন), সেগুলো অন্যান্য মডিউল থেকে ক্যালকুলেট হয়ে আসে। 
+frontend/
+│
+├── src/
+│   ├── app/
+│   │   ├── (auth)/
+│   │   │   ├── login/page.jsx
+│   │   │   └── register/page.jsx
+│   │   │
+│   │   ├── dashboard/
+│   │   │   ├── page.jsx
+│   │   │   ├── layout.jsx
+│   │   │   └── components/
+│   │   │
+│   │   ├── parties/
+│   │   ├── transactions/
+│   │   ├── inventory/
+│   │   ├── billing/
+│   │   ├── reports/
+│   │   ├── banking/
+│   │   └── staff/
+│   │
+│   ├── components/            # Reusable UI components
+│   │   ├── ui/                # shadcn/ui components
+│   │   ├── shared/            # Navbar, Sidebar
+│   │   └── forms/
+│   │
+│   ├── hooks/
+│   │   ├── useAuth.js
+│   │   ├── useBusiness.js
+│   │   └── useDebounce.js
+│   │
+│   ├── lib/
+│   │   ├── axios.js           # Axios instance
+│   │   ├── react-query.js
+│   │   └── utils.js
+│   │
+│   ├── store/                 # Zustand store
+│   │   ├── authStore.js
+│   │   ├── businessStore.js
+│   │   └── cartStore.js
+│   │
+│   ├── services/              # API functions
+│   │   ├── auth.service.js
+│   │   ├── inventory.service.js
+│   │   ├── transaction.service.js
+│   │   └── billing.service.js
+│   │
+│   ├── types/ (optional if TS)
+│   │
+│   └── styles/
+│
+├── public/
+├── package.json
+└── README.md
 
-নিচে ধাপে ধাপে ডেটাবেস ডিজাইন এবং API ডেভেলপমেন্টের একটি গাইডলাইন দেওয়া হলো:
+
+
 
 ---
 

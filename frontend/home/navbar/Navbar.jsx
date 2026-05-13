@@ -5,21 +5,25 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { ArrowRight, Menu, X, LogOut, LayoutDashboard } from "lucide-react";
 import useAuth from "@/hook/useAuth";
+import Image from "next/image";
 
 export default function Navbar() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-
-  // useAuth থেকে user এবং logout ফাংশন নিয়ে আসা হচ্ছে (আপনার হুকের রিটার্ন অনুযায়ী পরিবর্তন করে নিতে পারেন)
   const { user, logout, loading } = useAuth();
-  // console.log("Navbar - User:", user, "Loading:", loading);
 
   return (
     <header className="sticky top-0 w-full border-b border-gray-200 bg-[#FBFBFB] z-50">
       <div className="container mx-auto flex h-20 items-center justify-between px-4 md:px-8 max-w-[1400px]">
         {/* Left Side - Logo Section */}
         <Link href="/" className="flex items-center gap-3">
-          <div className="flex h-11 w-11 items-center justify-center rounded-lg bg-[#1AA676] text-white shadow-sm">
-            <span className="text-2xl font-bold leading-none mt-1">খ</span>
+          <div className="flex h-12 w-12 items-center justify-center shadow-sm rounded-lg overflow-hidden">
+            <Image
+              src="/images/amar-khata.png"
+              alt="Website Logo"
+              width={48}
+              height={48}
+              className="object-contain"
+            />
           </div>
           <div className="flex flex-col">
             <span className="text-xl font-bold text-gray-800 tracking-tight">
@@ -83,7 +87,7 @@ export default function Navbar() {
           <>
             <div className="hidden md:flex items-center gap-3">
               {user ? (
-                // ইউজার লগইন থাকলে এই বাটনগুলো দেখাবে
+                
                 <>
                   <Button
                     variant="outline"
@@ -104,7 +108,7 @@ export default function Navbar() {
                   </Button>
                 </>
               ) : (
-                // ইউজার লগইন না থাকলে এই বাটনগুলো দেখাবে
+              
                 <>
                   <Button
                     variant="outline"
@@ -199,7 +203,7 @@ export default function Navbar() {
             <>
               <div className="flex flex-col gap-3 mt-4 pt-4 border-t border-gray-100">
                 {user ? (
-                  // মোবাইল ভিউতে ইউজার লগইন থাকলে
+                  
                   <>
                     <Button
                       variant="outline"
@@ -218,15 +222,15 @@ export default function Navbar() {
                       variant="destructive"
                       className="w-full font-medium h-11 transition-colors flex items-center justify-center"
                       onClick={() => {
-                        logout(); // লগআউট ফাংশন কল হবে
-                        setIsMobileMenuOpen(false); // মোবাইল মেন্যু বন্ধ হবে
+                        logout(); 
+                        setIsMobileMenuOpen(false); 
                       }}
                     >
                       লগআউট <LogOut className="ml-2 h-4 w-4" />
                     </Button>
                   </>
                 ) : (
-                  // মোবাইল ভিউতে ইউজার লগইন না থাকলে
+                  
                   <>
                     <Button
                       variant="outline"

@@ -12,9 +12,7 @@ export default function AuthProvider({ children }) {
     try {
       setLoading(true);
       const data = await getMe();
-      // console.log("Fetched user data:", data);
 
-      // পরিবর্তন এখানে করা হয়েছে 👇
       setUser(data || null);
     } catch (error) {
       setUser(null);

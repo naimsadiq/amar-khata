@@ -25,7 +25,7 @@ export default function Faq() {
     },
   ];
 
-  // ডিফল্টভাবে প্রথম প্রশ্নটি (index 0) ওপেন থাকবে
+  
   const [openIndex, setOpenIndex] = useState(0);
 
   const toggleFaq = (index) => {

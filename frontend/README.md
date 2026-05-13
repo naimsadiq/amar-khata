@@ -1,94 +1,125 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
+# আমার খাতা (Amar Khata)
 
-## Getting Started
+**[🚀 লাইভ ডেমো ভিজিট করুন](https://amar-khata-xi.vercel.app/)**
 
-First, run the development server:
+![Amar Khata Banner](https://i.ibb.co/GfgBNJvz/amar-khata-dashboard.jpg)
+<!-- ☝️ এখানে আপনার প্রজেক্টের একটি সুন্দর ব্যানার ইমেজ যুক্ত করুন -->
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+**একটি পূর্ণাঙ্গ ডিজিটাল লেজার, ইনভেন্টরি এবং POS ম্যানেজমেন্ট সিস্টেম।**
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+"আমার খাতা" একটি ওয়েব-ভিত্তিক অ্যাপ্লিকেশন যা বাংলাদেশের ছোট ও মাঝারি ব্যবসায়ীদের (SME) দৈনন্দিন হিসাব-নিকাশ, কাস্টমার ও সাপ্লায়ারের লেনদেন, স্টক ব্যবস্থাপনা এবং বিলিং প্রক্রিয়াকে সহজ করার জন্য ডিজাইন করা হয়েছে। এটি একটি আধুনিক, ফাস্ট এবং ইউজার-ফ্রেন্ডলি ড্যাশবোর্ড যা ব্যবসার সার্বিক চিত্র এক নজরে দেখতে সাহায্য করে।
 
-You can start editing the page by modifying `app/page.js`. The page auto-updates as you edit the file.
+---
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## 🎯 প্রজেক্টের মূল উদ্দেশ্য (Project Goal)
 
-## Learn More
+- **ডিজিটাল খাতা:** প্রচলিত খাতা-কলমের হিসাবকে একটি ডিজিটাল এবং নিরাপদ প্ল্যাটফর্মে নিয়ে আসা।
+- **স্বয়ংক্রিয়তা:** বিল তৈরির সাথে সাথে স্টক স্বয়ংক্রিয়ভাবে আপডেট করা।
+- **সহজ ব্যবস্থাপনা:** কাস্টমারের বকেয়া, সাপ্লায়ারের পাওনা এবং ব্যাংকের লেনদেন সহজেই ট্র্যাক করা।
+- **রিপোর্টিং:** ব্যবসার লাভ-ক্ষতি, বিক্রয়ের পরিমাণ এবং অন্যান্য গুরুত্বপূর্ণ রিপোর্ট তৈরি করা।
 
-To learn more about Next.js, take a look at the following resources:
+---
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## ✨ প্রধান ফিচারসমূহ (Key Features)
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+- 🔐 **ইউজার অথেন্টিকেশন:** ফোন নম্বর ও OTP ভেরিফিকেশন এবং পিন সেটআপের মাধ্যমে নিরাপদ লগইন।
+- 🏢 **মাল্টি-বিজনেস সাপোর্ট:** একজন ইউজার একাধিক ব্যবসা বা দোকান পরিচালনা করতে পারবেন এবং সহজেই তাদের মধ্যে সুইচ করতে পারবেন।
+- 📊 **ইন্টারেক্টিভ ড্যাশবোর্ড:** টোটাল ব্যালেন্স, ক্যাশ ইন হ্যান্ড, বকেয়া ও পাওনার পরিমাণ গ্রাফ এবং চার্টের মাধ্যমে উপস্থাপন।
+- 👥 **গ্রাহক ও সাপ্লায়ার ব্যবস্থাপনা:** কাস্টমার ও সাপ্লায়ারদের তালিকা, তাদের লেনদেনের ইতিহাস (Ledger) এবং বকেয়া টাকা আদায়ের জন্য SMS রিমাইন্ডার পাঠানোর সুবিধা।
+- 💰 **ক্যাশ ও ট্রানজ্যাকশন:** ক্যাশ ইন/আউট এর হিসাব রাখা, তারিখ ও ধরণ অনুযায়ী ফিল্টার করা এবং বিলের ছবি আপলোড করার সুবিধা।
+- 📦 **ইনভেন্টরি ম্যানেজমেন্ট:** পণ্যের তালিকা (বারকোড সহ), ক্রয়মূল্য, বিক্রয়মূল্য, বর্তমান স্টক এবং লো-স্টক অ্যালার্ট সেট করার ব্যবস্থা।
+- 🛒 **পয়েন্ট অফ সেল (POS):** দ্রুত বিল তৈরির জন্য একটি আধুনিক ও সহজ কার্ট সিস্টেম। বারকোড স্ক্যানার দিয়ে বা সার্চ করে পণ্য যোগ করা এবং কাস্টমার সিলেক্ট করে বিল প্রিন্ট করার সুবিধা।
+- 🏦 **ব্যাংক ও কার্ড ব্যবস্থাপনা:** ব্যবসার সাথে যুক্ত ব্যাংক অ্যাকাউন্ট ম্যানেজ করা এবং লেনদেনের হিসাব রাখা।
+- 👨‍💼 **স্টাফ ম্যানেজমেন্ট:** কর্মচারী যুক্ত করা, তাদের উপস্থিতি (Attendance) ট্র্যাক করা এবং মাস শেষে স্বয়ংক্রিয়ভাবে বেতন হিসাব করা।
+- 📄 **রিপোর্ট জেনারেশন:** কাস্টমার স্টেটমেন্ট, প্রফিট/লস রিপোর্ট তৈরি এবং PDF/Excel ফরম্যাটে এক্সপোর্ট করার সুবিধা।
+- 🌐 **বাংলা ও ইংরেজি ভাষা:** ব্যবহারকারী নিজের পছন্দ অনুযায়ী ভাষা পরিবর্তন করতে পারবেন (i18n)।
 
-## Deploy on Vercel
+---
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## 🛠️ টেকনোলজি স্ট্যাক (Technology Stack)
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+এই প্রকল্পটি একটি আধুনিক এবং শক্তিশালী টেক স্ট্যাক ব্যবহার করে তৈরি করা হয়েছে যা পারফর্মেন্স এবং মেইনটেইনেবিলিটি নিশ্চিত করে।
 
+| ক্যাটাগরি              | টেকনোলজি                                                              |
+| --------------------- | --------------------------------------------------------------------- |
+| **Frontend Framework**| **Next.js (App Router)** / React (Vite)                               |
+| **State Management**  | **Zustand** (Global State), **TanStack Query** (Server State & Caching) |
+| **UI Framework**      | **Tailwind CSS** + **shadcn/ui**                                      |
+| **Forms & Validation**| **React Hook Form** + **Zod**                                         |
+| **Charts**            | **Recharts**                                                          |
+| **PDF Generation**    | **jspdf** + **html2canvas**                                           |
+| **API Client**        | **Axios** (with Interceptors)                                         |
+| **Localization**      | **i18next** / `next-intl`                                             |
 
+---
 
+## 🏛️ আর্কিটেকচার ও কোর লজিক (Architecture & Core Logic)
 
-frontend/
-│
-├── src/
-│   ├── app/
-│   │   ├── (auth)/
-│   │   │   ├── login/page.jsx
-│   │   │   └── register/page.jsx
-│   │   │
-│   │   ├── dashboard/
-│   │   │   ├── page.jsx
-│   │   │   ├── layout.jsx
-│   │   │   └── components/
-│   │   │
-│   │   ├── parties/
-│   │   ├── transactions/
-│   │   ├── inventory/
-│   │   ├── billing/
-│   │   ├── reports/
-│   │   ├── banking/
-│   │   └── staff/
-│   │
-│   ├── components/            # Reusable UI components
-│   │   ├── ui/                # shadcn/ui components
-│   │   ├── shared/            # Navbar, Sidebar
-│   │   └── forms/
-│   │
-│   ├── hooks/
-│   │   ├── useAuth.js
-│   │   ├── useBusiness.js
-│   │   └── useDebounce.js
-│   │
-│   ├── lib/
-│   │   ├── axios.js           # Axios instance
-│   │   ├── react-query.js
-│   │   └── utils.js
-│   │
-│   ├── store/                 # Zustand store
-│   │   ├── authStore.js
-│   │   ├── businessStore.js
-│   │   └── cartStore.js
-│   │
-│   ├── services/              # API functions
-│   │   ├── auth.service.js
-│   │   ├── inventory.service.js
-│   │   ├── transaction.service.js
-│   │   └── billing.service.js
-│   │
-│   ├── types/ (optional if TS)
-│   │
-│   └── styles/
-│
-├── public/
-├── package.json
-└── README.md
+প্রজেক্টটি কিছু মূল নীতির উপর ভিত্তি করে তৈরি করা হয়েছে:
+
+1.  **Multi-Business Context:** লগইন করার পর ইউজার তার ব্যবসা (Business) সিলেক্ট করে। এই `business_id` একটি গ্লোবাল স্টেটে (`Zustand` স্টোর) সেভ থাকে এবং প্রতিটি API কলে এটি পাঠানো হয়, যাতে সঠিক ব্যবসার ডেটা লোড হয়।
+2.  **Server State Management:** `TanStack Query` ব্যবহার করে সকল API কল ম্যানেজ করা হয়। এটি স্বয়ংক্রিয়ভাবে ডেটা ক্যাশিং, রি-ফেচিং এবং এরর হ্যান্ডলিং করে, যা অ্যাপকে অনেক ফাস্ট এবং রেসপন্সিভ করে তোলে।
+3.  **Inventory Auto-Deduction:** যখন POS থেকে কোনো বিল সফলভাবে তৈরি হয় (`/bill/sell`), তখন সেই বিলের প্রতিটি আইটেমের `current_stock` স্বয়ংক্রিয়ভাবে কমে যায়।
+4.  **Debouncing:** ইনভেন্টরি বা কাস্টমার সার্চের মতো ফিচারগুলোতে Debouncing ব্যবহার করা হয়েছে, যাতে প্রতিটি কী-স্ট্রোকের জন্য API কল না হয়ে একটি নির্দিষ্ট সময় পর (যেমন ৩০০ms) কল হয়।
+5.  **Role Based Access Control (RBAC):** সাধারণ ব্যবহারকারী এবং সুপার অ্যাডমিনের জন্য আলাদা ড্যাশবোর্ড এবং API এন্ডপয়েন্ট রয়েছে। অ্যাডমিন প্যানেলটি `/admin` রাউটের অধীনে সম্পূর্ণ আলাদাভাবে পরিচালিত হয়।
+
+---
+
+## 🚀 শুরু করুন (Getting Started)
+
+এই প্রজেক্টটি লোকাল মেশিনে চালানোর জন্য নিচের ধাপগুলো অনুসরণ করুন:
+
+### পূর্বশর্ত (Prerequisites)
+
+- Node.js (v18 or higher)
+- npm / yarn / pnpm
+
+### ইনস্টলেশন (Installation)
+
+1.  **রিপোজিটরিটি ক্লোন করুন:**
+    ```bash
+    git clone https://github.com/naimsadiq/amar-khata.git
+    cd amar-khata
+    ```
+
+2.  **ডিপেন্ডেন্সি ইনস্টল করুন:**
+    ```bash
+    npm install
+    # অথবা
+    yarn install
+    # অথবা
+    pnpm install
+    ```
+
+3.  **এনভায়রনমেন্ট ভ্যারিয়েবল সেট করুন:**
+    `.env.example` ফাইলটিকে কপি করে `.env.local` নামে একটি নতুন ফাইল তৈরি করুন এবং আপনার প্রয়োজনীয় API কী এবং কনফিগারেশন যুক্ত করুন।
+    ```bash
+    cp .env.example .env.local
+    ```
+    আপনার `.env.local` ফাইলে নিচের মত করে API URL যুক্ত করুন:
+    ```env
+    NEXT_PUBLIC_API_BASE_URL="http://your-backend-api-url.com/api"
+    ```
+
+4.  **ডেভেলপমেন্ট সার্ভার চালু করুন:**
+    ```bash
+    npm run dev
+    # অথবা
+    yarn dev
+    # অথবা
+    pnpm dev
+    ```
+
+5.  ব্রাউজারে [`http://localhost:3000`](http://localhost:3000) ভিজিট করুন।
+
+---
+
+## 🤝 কন্ট্রিবিউশন (Contributing)
+
+এই প্রজেক্টে কন্ট্রিবিউট করতে চাইলে আমরা আপনাকে স্বাগত জানাই! অনুগ্রহ করে নিচের ধাপগুলো অনুসরণ করুন:
+
+1.  প্রজেক্টটি ফর্ক (Fork) করুন।
+2.  আপনার নতুন ফিচারের জন্য একটি নতুন ব্রাঞ্চ তৈরি করুন (`git checkout -b feature/AmazingFeature`)।
+3.  আপনার পরিবর্তনগুলো কমিট করুন (`git commit -m 'Add some AmazingFeature'`)।
+4.  ব্রাঞ্চটি পুশ করুন (`git push origin feature/AmazingFeature`)।
+5.  একটি পুল রিকোয়েস্ট (Pull Request) ওপেন করুন।

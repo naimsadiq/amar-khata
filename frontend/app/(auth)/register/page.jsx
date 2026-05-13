@@ -59,7 +59,7 @@ export default function RegisterPage() {
       setIsLoading(true);
 
       const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/api/register`,
+        `${process.env.NEXT_PUBLIC_API_URL}/api/auth/register`,
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -97,7 +97,7 @@ export default function RegisterPage() {
       setIsLoading(true);
 
       const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/verify-otp`,
+        `${process.env.NEXT_PUBLIC_API_URL}/api/auth/verify-otp`,
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -147,13 +147,15 @@ export default function RegisterPage() {
       setIsResending(true);
 
       const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/resend-otp`,
+        `${process.env.NEXT_PUBLIC_API_URL}/api/auth/resend-otp`,
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ email: userCredentials.email }),
         },
       );
+
+      const data = await response.json();
 
       if (response.ok) {
         Swal.fire({
@@ -166,7 +168,11 @@ export default function RegisterPage() {
         });
         setTimer(60);
       } else {
-        Swal.fire("ত্রুটি", "ওটিপি আবার পাঠাতে ব্যর্থ হয়েছে", "error");
+        Swal.fire(
+          "ত্রুটি",
+          data.message || "ওটিপি আবার পাঠাতে ব্যর্থ হয়েছে",
+          "error",
+        );
       }
     } catch (error) {
       Swal.fire("ত্রুটি", "ওটিপি পাঠানোর সময় নেটওয়ার্ক সমস্যা হয়েছে", "error");
@@ -338,7 +344,7 @@ export default function RegisterPage() {
                   </div>
 
                   {/* Google Login Button */}
-                  <Button
+                  {/* <Button
                     type="button"
                     variant="outline"
                     onClick={handleGoogleLogin}
@@ -367,7 +373,7 @@ export default function RegisterPage() {
                       />
                     </svg>
                     গুগল (Google)
-                  </Button>
+                  </Button> */}
 
                   {/* Login Link */}
                   <p className="text-center text-sm text-[#414754] pt-2">

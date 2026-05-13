@@ -16,7 +16,7 @@ import { CreditCard, LogOut, Settings, User } from "lucide-react";
 import { useRouter } from "next/navigation";
 
 export function UserNav() {
-  const { user } = useAuth();
+  const { user, logout } = useAuth();
   const router = useRouter();
 
   return (
@@ -51,7 +51,7 @@ export function UserNav() {
           </DropdownMenuItem>
         </DropdownMenuGroup>
         <DropdownMenuSeparator />
-        <DropdownMenuItem>
+        <DropdownMenuItem onClick={logout}>
           <LogOut className="mr-2 h-4 w-4" />
           <span>লগ আউট</span>
         </DropdownMenuItem>

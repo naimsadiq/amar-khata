@@ -163,7 +163,7 @@ export default function LoginPage() {
               </div>
 
               {/* Google Login Button */}
-              <Button
+              {/* <Button
                 type="button"
                 variant="outline"
                 onClick={handleGoogleLogin}
@@ -192,7 +192,7 @@ export default function LoginPage() {
                   />
                 </svg>
                 গুগল (Google)
-              </Button>
+              </Button> */}
 
               {/* Registration Link */}
               <p className="text-center text-sm text-[#414754] pt-2">
